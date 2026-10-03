@@ -1,10 +1,12 @@
 class CategoryModel {
   final int id;
   final String name;
+  final String? imageUrl;
 
   const CategoryModel({
     required this.id,
     required this.name,
+    this.imageUrl,
   });
 
   factory CategoryModel.fromJson(
@@ -13,6 +15,7 @@ class CategoryModel {
     return CategoryModel(
       id: json['id'] as int,
       name: json['name'] as String,
+      imageUrl: json['image_url'] as String?,
     );
   }
 }
