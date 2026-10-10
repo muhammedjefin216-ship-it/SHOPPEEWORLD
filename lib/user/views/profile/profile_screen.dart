@@ -2,13 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shoppee_world/user/views/orders/order_screen.dart';
 import 'package:shoppee_world/user/views/auth/login/login_screen.dart';
+import 'package:shoppee_world/user/views/profile/edit_profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   static const Color backgroundColor = Color(0xff080C0D);
   static const Color cardColor = Color(0xff191D1E);
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  // ============================================================
+  // OPEN EDIT PROFILE
+  // ============================================================
+
+  Future<void> _openEditProfile() async {
+    final updated = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const EditProfileScreen(),
+      ),
+    );
+
+    if (updated == true && mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,23 +45,28 @@ class ProfileScreen extends StatelessWidget {
         user?.userMetadata?['name']?.toString() ?? 'User';
 
     final userPhone =
-        user?.userMetadata?['phone']?.toString() ?? 'No phone number';
+        user?.userMetadata?['phone']?.toString() ??
+        'No phone number';
 
     final userEmail =
         user?.email ?? 'No email';
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: ProfileScreen.backgroundColor,
 
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 30),
+          padding: const EdgeInsets.fromLTRB(
+            18,
+            18,
+            18,
+            30,
+          ),
 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               // =====================================================
               // HEADER
               // =====================================================
@@ -74,7 +102,7 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(18),
 
                 decoration: BoxDecoration(
-                  color: cardColor,
+                  color: ProfileScreen.cardColor,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: Colors.white.withOpacity(.06),
@@ -83,7 +111,6 @@ class ProfileScreen extends StatelessWidget {
 
                 child: Row(
                   children: [
-
                     // =================================================
                     // PROFILE IMAGE
                     // =================================================
@@ -93,11 +120,13 @@ class ProfileScreen extends StatelessWidget {
                       width: 68,
 
                       decoration: BoxDecoration(
-                        color: const Color(0xff080C0D),
+                        color:
+                            ProfileScreen.backgroundColor,
                         shape: BoxShape.circle,
 
                         border: Border.all(
-                          color: Colors.white.withOpacity(.10),
+                          color:
+                              Colors.white.withOpacity(.10),
                         ),
                       ),
 
@@ -118,14 +147,12 @@ class ProfileScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment:
                             CrossAxisAlignment.start,
-
                         children: [
-
-                          // NAME
                           Text(
                             userName,
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            overflow:
+                                TextOverflow.ellipsis,
 
                             style: GoogleFonts.outfit(
                               color: Colors.white,
@@ -136,27 +163,25 @@ class ProfileScreen extends StatelessWidget {
 
                           const SizedBox(height: 4),
 
-                          // EMAIL
                           Text(
                             userEmail,
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            overflow:
+                                TextOverflow.ellipsis,
 
                             style: GoogleFonts.outfit(
                               color: Colors.white38,
                               fontSize: 10,
-                              fontWeight: FontWeight.w400,
                             ),
                           ),
 
                           const SizedBox(height: 3),
 
-                          // PHONE
                           Text(
                             userPhone,
-
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            overflow:
+                                TextOverflow.ellipsis,
 
                             style: GoogleFonts.outfit(
                               color: Colors.white38,
@@ -172,25 +197,23 @@ class ProfileScreen extends StatelessWidget {
                     // =================================================
 
                     GestureDetector(
-                      onTap: () {},
+                      onTap: _openEditProfile,
 
                       child: Container(
                         height: 36,
                         width: 36,
 
                         decoration: BoxDecoration(
-                          color: const Color(0xff080C0D),
-                          shape: BoxShape.circle,
-
-                          border: Border.all(
-                            color: Colors.white.withOpacity(.07),
-                          ),
+                          color:
+                              ProfileScreen.backgroundColor,
+                          borderRadius:
+                              BorderRadius.circular(10),
                         ),
 
                         child: const Icon(
                           Icons.edit_outlined,
                           color: Colors.white70,
-                          size: 16,
+                          size: 17,
                         ),
                       ),
                     ),
@@ -201,7 +224,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 25),
 
               // =====================================================
-              // QUICK ACTIONS
+              // QUICK ACCESS
               // =====================================================
 
               Text(
@@ -217,18 +240,21 @@ class ProfileScreen extends StatelessWidget {
 
               Row(
                 children: [
-
                   Expanded(
                     child: _quickAction(
-                      icon: Icons.receipt_long_outlined,
+                      icon:
+                          Icons.receipt_long_outlined,
                       title: "Orders",
-
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) =>
-                                const OrdersScreen(),
+                                OrdersScreen(
+                              onBack: () {
+                                Navigator.pop(context);
+                              },
+                            ),
                           ),
                         );
                       },
@@ -239,7 +265,8 @@ class ProfileScreen extends StatelessWidget {
 
                   Expanded(
                     child: _quickAction(
-                      icon: Icons.favorite_border_rounded,
+                      icon:
+                          Icons.favorite_border_rounded,
                       title: "Wishlist",
                       onTap: () {},
                     ),
@@ -249,7 +276,8 @@ class ProfileScreen extends StatelessWidget {
 
                   Expanded(
                     child: _quickAction(
-                      icon: Icons.shopping_bag_outlined,
+                      icon:
+                          Icons.shopping_bag_outlined,
                       title: "Cart",
                       onTap: () {},
                     ),
@@ -277,8 +305,9 @@ class ProfileScreen extends StatelessWidget {
               _menuItem(
                 icon: Icons.person_outline_rounded,
                 title: "Personal Information",
-                subtitle: "Manage your account details",
-                onTap: () {},
+                subtitle:
+                    "Manage your account details",
+                onTap: _openEditProfile,
               ),
 
               const SizedBox(height: 10),
@@ -286,16 +315,19 @@ class ProfileScreen extends StatelessWidget {
               _menuItem(
                 icon: Icons.location_on_outlined,
                 title: "Delivery Addresses",
-                subtitle: "Manage your saved addresses",
+                subtitle:
+                    "Manage your saved addresses",
                 onTap: () {},
               ),
 
               const SizedBox(height: 10),
 
               _menuItem(
-                icon: Icons.notifications_none_rounded,
+                icon:
+                    Icons.notifications_none_rounded,
                 title: "Notifications",
-                subtitle: "Manage notification preferences",
+                subtitle:
+                    "Manage notification preferences",
                 onTap: () {},
               ),
 
@@ -319,7 +351,8 @@ class ProfileScreen extends StatelessWidget {
               _menuItem(
                 icon: Icons.help_outline_rounded,
                 title: "Help & Support",
-                subtitle: "Get help with your orders",
+                subtitle:
+                    "Get help with your orders",
                 onTap: () {},
               ),
 
@@ -328,7 +361,8 @@ class ProfileScreen extends StatelessWidget {
               _menuItem(
                 icon: Icons.info_outline_rounded,
                 title: "About Shoppee World",
-                subtitle: "Learn more about our app",
+                subtitle:
+                    "Learn more about our app",
                 onTap: () {},
               ),
 
@@ -346,30 +380,32 @@ class ProfileScreen extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
 
-                  padding: const EdgeInsets.symmetric(
+                  padding:
+                      const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 15,
                   ),
 
                   decoration: BoxDecoration(
-                    color: const Color(0xff191D1E),
-                    borderRadius: BorderRadius.circular(15),
+                    color: ProfileScreen.cardColor,
+                    borderRadius:
+                        BorderRadius.circular(15),
 
                     border: Border.all(
-                      color: Colors.redAccent.withOpacity(.12),
+                      color: Colors.redAccent
+                          .withOpacity(.12),
                     ),
                   ),
 
                   child: Row(
                     children: [
-
                       Container(
                         height: 38,
                         width: 38,
 
                         decoration: BoxDecoration(
-                          color:
-                              Colors.redAccent.withOpacity(.08),
+                          color: Colors.redAccent
+                              .withOpacity(.08),
                           shape: BoxShape.circle,
                         ),
 
@@ -412,7 +448,6 @@ class ProfileScreen extends StatelessWidget {
               Center(
                 child: Text(
                   "Shoppee World • Version 1.0.0",
-
                   style: GoogleFonts.outfit(
                     color: Colors.white24,
                     fontSize: 9,
@@ -442,7 +477,7 @@ class ProfileScreen extends StatelessWidget {
         width: 42,
 
         decoration: BoxDecoration(
-          color: cardColor,
+          color: ProfileScreen.cardColor,
           shape: BoxShape.circle,
 
           border: Border.all(
@@ -475,7 +510,7 @@ class ProfileScreen extends StatelessWidget {
         height: 88,
 
         decoration: BoxDecoration(
-          color: cardColor,
+          color: ProfileScreen.cardColor,
           borderRadius: BorderRadius.circular(16),
 
           border: Border.all(
@@ -484,10 +519,10 @@ class ProfileScreen extends StatelessWidget {
         ),
 
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+              MainAxisAlignment.center,
 
           children: [
-
             Icon(
               icon,
               color: Colors.white70,
@@ -498,7 +533,6 @@ class ProfileScreen extends StatelessWidget {
 
             Text(
               title,
-
               style: GoogleFonts.outfit(
                 color: Colors.white,
                 fontSize: 11,
@@ -525,13 +559,14 @@ class ProfileScreen extends StatelessWidget {
       onTap: onTap,
 
       child: Container(
-        padding: const EdgeInsets.symmetric(
+        padding:
+            const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 13,
         ),
 
         decoration: BoxDecoration(
-          color: cardColor,
+          color: ProfileScreen.cardColor,
           borderRadius: BorderRadius.circular(15),
 
           border: Border.all(
@@ -541,14 +576,15 @@ class ProfileScreen extends StatelessWidget {
 
         child: Row(
           children: [
-
             Container(
               height: 40,
               width: 40,
 
               decoration: BoxDecoration(
-                color: const Color(0xff080C0D),
-                borderRadius: BorderRadius.circular(11),
+                color:
+                    ProfileScreen.backgroundColor,
+                borderRadius:
+                    BorderRadius.circular(11),
               ),
 
               child: Icon(
@@ -566,10 +602,8 @@ class ProfileScreen extends StatelessWidget {
                     CrossAxisAlignment.start,
 
                 children: [
-
                   Text(
                     title,
-
                     style: GoogleFonts.outfit(
                       color: Colors.white,
                       fontSize: 12,
@@ -581,7 +615,6 @@ class ProfileScreen extends StatelessWidget {
 
                   Text(
                     subtitle,
-
                     style: GoogleFonts.outfit(
                       color: Colors.white30,
                       fontSize: 9,
@@ -612,10 +645,12 @@ class ProfileScreen extends StatelessWidget {
 
       builder: (context) {
         return AlertDialog(
-          backgroundColor: cardColor,
+          backgroundColor:
+              ProfileScreen.cardColor,
 
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius:
+                BorderRadius.circular(20),
           ),
 
           title: Text(
@@ -629,7 +664,6 @@ class ProfileScreen extends StatelessWidget {
 
           content: Text(
             "Are you sure you want to logout from your account?",
-
             style: GoogleFonts.outfit(
               color: Colors.white54,
               fontSize: 13,
@@ -638,7 +672,6 @@ class ProfileScreen extends StatelessWidget {
           ),
 
           actions: [
-
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -646,7 +679,6 @@ class ProfileScreen extends StatelessWidget {
 
               child: Text(
                 "Cancel",
-
                 style: GoogleFonts.outfit(
                   color: Colors.white54,
                   fontWeight: FontWeight.w600,
@@ -657,23 +689,24 @@ class ProfileScreen extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 try {
-                  await Supabase.instance.client.auth.signOut();
+                  await Supabase.instance.client.auth
+                      .signOut();
 
                   if (!context.mounted) return;
 
                   Navigator.pushAndRemoveUntil(
                     context,
-
                     MaterialPageRoute(
-                      builder: (_) => const LoginScreen(),
+                      builder: (_) =>
+                          const LoginScreen(),
                     ),
-
                     (route) => false,
                   );
                 } catch (e) {
                   if (!context.mounted) return;
 
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(
                     const SnackBar(
                       content: Text(
                         'Logout failed. Please try again.',
@@ -685,7 +718,6 @@ class ProfileScreen extends StatelessWidget {
 
               child: Text(
                 "Logout",
-
                 style: GoogleFonts.outfit(
                   color: Colors.redAccent,
                   fontWeight: FontWeight.w700,

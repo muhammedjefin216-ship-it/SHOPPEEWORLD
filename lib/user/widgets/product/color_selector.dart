@@ -81,10 +81,6 @@ class ColorSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ==========================================================
-        // COLOR TITLE
-        // ==========================================================
-
         Row(
           children: [
             Text(

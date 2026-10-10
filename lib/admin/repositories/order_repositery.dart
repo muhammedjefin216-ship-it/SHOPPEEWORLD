@@ -35,15 +35,19 @@ class AdminOrderRepository {
   return List<Map<String, dynamic>>.from(response);
 }
 
-  Future<void> updateOrderStatus({
-    required String orderId,
-    required String status,
-  }) async {
-    await _supabase
-        .from('orders')
-        .update({
-          'status': status,
-        })
-        .eq('id', orderId);
-  }
+ Future<void> updateOrderStatus({
+  required String orderId,
+  required String status,
+}) async {
+  final response = await _supabase
+      .from('orders')
+      .update({
+        'status': status,
+      })
+      .eq('id', orderId)
+      .select('id, status')
+      .single();
+
+  print('UPDATED ORDER: $response');
+}
 }

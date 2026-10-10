@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:shoppee_world/user/core/theme/app_tokens.dart';
 
 class QuantitySelector extends StatelessWidget {
   final int quantity;
@@ -23,11 +23,7 @@ class QuantitySelector extends StatelessWidget {
       children: [
         Text(
           "Quantity",
-          style: GoogleFonts.outfit(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
+          style: AppTokens.bodyStrong,
         ),
 
         // ==========================================================
@@ -35,12 +31,13 @@ class QuantitySelector extends StatelessWidget {
         // ==========================================================
 
         Container(
-          height: 42,
+          height: 44,
           decoration: BoxDecoration(
-            color: const Color(0xff191D1E),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(
+              AppTokens.radiusMd,
+            ),
             border: Border.all(
-              color: Colors.white.withOpacity(.08),
+              color: AppTokens.border,
             ),
           ),
           child: Row(
@@ -58,15 +55,11 @@ class QuantitySelector extends StatelessWidget {
 
               // QUANTITY
               Container(
-                width: 38,
+                width: 40,
                 alignment: Alignment.center,
                 child: Text(
                   quantity.toString(),
-                  style: GoogleFonts.outfit(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: AppTokens.bodyStrong,
                 ),
               ),
 
@@ -95,18 +88,18 @@ class QuantitySelector extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
         onTap: isEnabled ? onTap : null,
         child: SizedBox(
-          width: 40,
-          height: 42,
+          width: 44,
+          height: 44,
           child: Center(
             child: Icon(
               icon,
-              size: 17,
+              size: 18,
               color: isEnabled
-                  ? Colors.white
-                  : Colors.white24,
+                  ? AppTokens.textPrimary
+                  : AppTokens.textTertiary,
             ),
           ),
         ),

@@ -98,10 +98,16 @@ class OrderSuccessScreen extends StatelessWidget {
                 height: 58,
                 child: OutlinedButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const OrdersScreen()),
-                    );
+                   Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(
+    builder: (_) => OrdersScreen(
+      onBack: () {
+        Navigator.pop(context);
+      },
+    ),
+  ),
+);
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.black,

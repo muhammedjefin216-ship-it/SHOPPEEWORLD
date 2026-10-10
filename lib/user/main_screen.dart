@@ -18,17 +18,31 @@ class MainScreen extends ConsumerStatefulWidget {
 class _MainScreenState extends ConsumerState<MainScreen> {
   int currentIndex = 0;
 
-  final List<Widget> screens = const [
-    HomeScreen(),
-    SearchScreen(),
-    WishlistScreen(),
-    OrdersScreen(),
-    ProfileScreen(),
-  ];
+  late final List<Widget> screens;
 
   @override
   void initState() {
     super.initState();
+
+    screens = [
+      const HomeScreen(),
+
+      const SearchScreen(),
+
+      const WishlistScreen(),
+
+      OrdersScreen(
+  onBack: () {
+    if (!mounted) return;
+
+    setState(() {
+      currentIndex = 0;
+    });
+  },
+),
+
+      const ProfileScreen(),
+    ];
 
     Future.microtask(() {
       ref.read(cartProvider.notifier).loadCart();
@@ -38,105 +52,105 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff080C0D),
-
       body: IndexedStack(
         index: currentIndex,
         children: screens,
       ),
 
-      bottomNavigationBar: Container(
-        height: 62,
-        decoration: const BoxDecoration(
-          color: Color(0xff191D1E),
-        ),
-        child: NavigationBar(
-          height: 62,
-          backgroundColor: const Color(0xff191D1E),
-          elevation: 0,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: currentIndex,
 
-          selectedIndex: currentIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+        },
 
-          onDestinationSelected: (index) {
-            setState(() {
-              currentIndex = index;
-            });
-          },
+        backgroundColor: const Color(0xFF080C0D),
 
-          indicatorColor: Colors.white,
+        indicatorColor: const Color(0xFF191D1E),
 
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(
-                Icons.home_outlined,
-                color: Colors.white54,
-                size: 21,
-              ),
-              selectedIcon: Icon(
-                Icons.home,
-                color: Colors.black,
-                size: 21,
-              ),
-              label: 'Home',
+        destinations: const [
+          // =========================================================
+          // HOME
+          // =========================================================
+
+          NavigationDestination(
+            icon: Icon(
+              Icons.home_outlined,
+              color: Colors.white70,
             ),
-
-            NavigationDestination(
-              icon: Icon(
-                Icons.search,
-                color: Colors.white54,
-                size: 21,
-              ),
-              selectedIcon: Icon(
-                Icons.search,
-                color: Colors.black,
-                size: 21,
-              ),
-              label: 'Search',
+            selectedIcon: Icon(
+              Icons.home,
+              color: Colors.white,
             ),
+            label: 'Home',
+          ),
 
-            NavigationDestination(
-              icon: Icon(
-                Icons.favorite_border,
-                color: Colors.white54,
-                size: 21,
-              ),
-              selectedIcon: Icon(
-                Icons.favorite,
-                color: Colors.black,
-                size: 21,
-              ),
-              label: 'Wishlist',
-            ),
+          // =========================================================
+          // SEARCH
+          // =========================================================
 
-            NavigationDestination(
-              icon: Icon(
-                Icons.receipt_long_outlined,
-                color: Colors.white54,
-                size: 21,
-              ),
-              selectedIcon: Icon(
-                Icons.receipt_long,
-                color: Colors.black,
-                size: 21,
-              ),
-              label: 'Orders',
+          NavigationDestination(
+            icon: Icon(
+              Icons.search_outlined,
+              color: Colors.white70,
             ),
+            selectedIcon: Icon(
+              Icons.search,
+              color: Colors.white,
+            ),
+            label: 'Search',
+          ),
 
-            NavigationDestination(
-              icon: Icon(
-                Icons.person_outline,
-                color: Colors.white54,
-                size: 21,
-              ),
-              selectedIcon: Icon(
-                Icons.person,
-                color: Colors.black,
-                size: 21,
-              ),
-              label: 'Profile',
+          // =========================================================
+          // WISHLIST
+          // =========================================================
+
+          NavigationDestination(
+            icon: Icon(
+              Icons.favorite_border,
+              color: Colors.white70,
             ),
-          ],
-        ),
+            selectedIcon: Icon(
+              Icons.favorite,
+              color: Colors.white,
+            ),
+            label: 'Wishlist',
+          ),
+
+          // =========================================================
+          // ORDERS
+          // =========================================================
+
+          NavigationDestination(
+            icon: Icon(
+              Icons.shopping_bag_outlined,
+              color: Colors.white70,
+            ),
+            selectedIcon: Icon(
+              Icons.shopping_bag,
+              color: Colors.white,
+            ),
+            label: 'Orders',
+          ),
+
+          // =========================================================
+          // PROFILE
+          // =========================================================
+
+          NavigationDestination(
+            icon: Icon(
+              Icons.person_outline,
+              color: Colors.white70,
+            ),
+            selectedIcon: Icon(
+              Icons.person,
+              color: Colors.white,
+            ),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }

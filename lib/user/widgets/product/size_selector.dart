@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:shoppee_world/user/core/theme/app_tokens.dart';
 
 class SizeSelector extends StatefulWidget {
   final List<String> sizes;
@@ -29,60 +29,77 @@ class _SizeSelectorState extends State<SizeSelector> {
 
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              "Select Size",
-              style: GoogleFonts.outfit(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
+              "Size",
+              style: AppTokens.bodyStrong,
             ),
 
-            TextButton.icon(
-              onPressed: () {
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       "Size Guide: Standard UK sizing applies.",
-                      style: GoogleFonts.outfit(),
+                      style: AppTokens.bodyStrong,
                     ),
                     behavior: SnackBarBehavior.floating,
+                    backgroundColor: AppTokens.surface,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppTokens.radiusLg,
+                      ),
+                      side: const BorderSide(
+                        color: AppTokens.borderStrong,
+                      ),
+                    ),
                   ),
                 );
               },
-              icon: const Icon(
-                Icons.rule,
-                size: 15,
-                color: Colors.white54,
-              ),
-              label: Text(
-                "Size Guide",
-                style: GoogleFonts.outfit(
-                  color: Colors.white54,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  decoration: TextDecoration.underline,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 4,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.straighten_rounded,
+                      size: 16,
+                      color: AppTokens.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Size guide",
+                      style: AppTokens.caption.copyWith(
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ],
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: AppTokens.s8),
 
         // ==========================================================
         // SIZE OPTIONS
         // ==========================================================
 
         SizedBox(
-          height: 48,
+          height: 44,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             itemCount: widget.sizes.length,
             separatorBuilder: (_, _) =>
-                const SizedBox(width: 10),
+                const SizedBox(width: AppTokens.s8),
             itemBuilder: (context, index) {
               final size = widget.sizes[index];
 
@@ -97,29 +114,33 @@ class _SizeSelectorState extends State<SizeSelector> {
                   duration: const Duration(
                     milliseconds: 200,
                   ),
-                  width: 58,
+                  constraints: const BoxConstraints(
+                    minWidth: 52,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTokens.s12,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Colors.white
-                        : const Color(0xff191D1E),
-                    borderRadius:
-                        BorderRadius.circular(11),
+                        ? AppTokens.fill
+                        : AppTokens.background,
+                    borderRadius: BorderRadius.circular(
+                      AppTokens.radiusMd,
+                    ),
                     border: Border.all(
                       color: isSelected
-                          ? Colors.white
-                          : Colors.white.withOpacity(.08),
+                          ? AppTokens.fill
+                          : AppTokens.border,
                       width: 1,
                     ),
                   ),
                   child: Center(
                     child: Text(
                       size.replaceFirst("UK ", ""),
-                      style: GoogleFonts.outfit(
+                      style: AppTokens.bodyStrong.copyWith(
                         color: isSelected
-                            ? Colors.black
-                            : Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
+                            ? AppTokens.onFill
+                            : AppTokens.textPrimary,
                       ),
                     ),
                   ),

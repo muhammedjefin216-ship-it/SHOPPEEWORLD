@@ -9,6 +9,10 @@ class SelectedCategoryNotifier extends Notifier<int?> {
   void selectCategory(int? id) {
     state = id;
   }
+
+  void clearCategory() {
+    state = null;
+  }
 }
 
 final selectedCategoryProvider =

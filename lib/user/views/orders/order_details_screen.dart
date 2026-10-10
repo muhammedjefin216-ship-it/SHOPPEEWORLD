@@ -7,290 +7,18 @@ import '../../repositories/order_repository.dart';
 class OrderDetailsScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> order;
 
-  const OrderDetailsScreen({
-    super.key,
-    required this.order,
-  });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  const OrderDetailsScreen({super.key, required this.order});
 
   @override
-  ConsumerState<OrderDetailsScreen> createState() =>
-      _OrderDetailsScreenState();
+  ConsumerState<OrderDetailsScreen> createState() => _OrderDetailsScreenState();
 }
 
-class _OrderDetailsScreenState
-    extends ConsumerState<OrderDetailsScreen> {
+class _OrderDetailsScreenState extends ConsumerState<OrderDetailsScreen> {
   final OrderRepository _repository = OrderRepository();
 
   List<Map<String, dynamic>> items = [];
   bool isLoading = true;
-  String? error;  
+  String? error;
 
   @override
   void initState() {
@@ -302,8 +30,7 @@ class _OrderDetailsScreenState
     try {
       final orderId = widget.order['id'].toString();
 
-      final result =
-          await _repository.getOrderItems(orderId);
+      final result = await _repository.getOrderItems(orderId);
 
       if (!mounted) return;
 
@@ -325,13 +52,10 @@ class _OrderDetailsScreenState
   Widget build(BuildContext context) {
     final order = widget.order;
 
-    final status =
-        order['status']?.toString() ?? 'pending';
+    final status = order['status']?.toString() ?? 'pending';
 
-    final total = double.tryParse(
-          order['total_amount']?.toString() ?? '0',
-        ) ??
-        0;
+    final total =
+        double.tryParse(order['total_amount']?.toString() ?? '0') ?? 0;
 
     return Scaffold(
       backgroundColor: const Color(0xff080C0D),
@@ -364,30 +88,20 @@ class _OrderDetailsScreenState
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(
-          18,
-          8,
-          18,
-          30,
-        ),
+        padding: const EdgeInsets.fromLTRB(18, 8, 18, 30),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // =====================================================
             // ORDER HEADER
             // =====================================================
-
-            _buildOrderHeader(
-              order: order,
-              status: status,
-            ),
+            _buildOrderHeader(order: order, status: status),
 
             const SizedBox(height: 24),
 
             // =====================================================
             // PRODUCTS
             // =====================================================
-
             _buildSectionTitle("Products"),
 
             const SizedBox(height: 11),
@@ -408,11 +122,7 @@ class _OrderDetailsScreenState
               _buildEmptyItems()
             else
               Column(
-                children: items
-                    .map(
-                      (item) => _buildProductItem(item),
-                    )
-                    .toList(),
+                children: items.map((item) => _buildProductItem(item)).toList(),
               ),
 
             const SizedBox(height: 20),
@@ -420,18 +130,13 @@ class _OrderDetailsScreenState
             // =====================================================
             // PRICE SUMMARY
             // =====================================================
-
-            _buildPriceSummary(
-              order: order,
-              total: total,
-            ),
+            _buildPriceSummary(order: order, total: total),
 
             const SizedBox(height: 20),
 
             // =====================================================
             // CUSTOMER DETAILS
             // =====================================================
-
             _buildCustomerDetails(order),
 
             const SizedBox(height: 20),
@@ -439,7 +144,6 @@ class _OrderDetailsScreenState
             // =====================================================
             // DELIVERY ADDRESS
             // =====================================================
-
             _buildDeliveryAddress(order),
           ],
         ),
@@ -455,27 +159,21 @@ class _OrderDetailsScreenState
     required Map<String, dynamic> order,
     required String status,
   }) {
-    final createdAt =
-        order['created_at']?.toString() ?? '';
+    final createdAt = order['created_at']?.toString() ?? '';
 
-    final normalizedStatus =
-        status.toLowerCase();
+    final normalizedStatus = status.toLowerCase();
 
-    final isPending =
-        normalizedStatus == 'pending';
+    final isPending = normalizedStatus == 'pending';
 
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: const Color(0xff191D1E),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(.07),
-        ),
+        border: Border.all(color: Colors.white.withOpacity(.07)),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -484,8 +182,7 @@ class _OrderDetailsScreenState
                 width: 48,
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(.07),
-                  borderRadius:
-                      BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
                   Icons.shopping_bag_outlined,
@@ -498,8 +195,7 @@ class _OrderDetailsScreenState
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       "Order #${_shortOrderId(order['id'])}",
@@ -527,10 +223,7 @@ class _OrderDetailsScreenState
 
           const SizedBox(height: 18),
 
-          Container(
-            height: 1,
-            color: Colors.white.withOpacity(.06),
-          ),
+          Container(height: 1, color: Colors.white.withOpacity(.06)),
 
           const SizedBox(height: 15),
 
@@ -571,34 +264,20 @@ class _OrderDetailsScreenState
   // PRODUCT ITEM
   // =============================================================
 
-  Widget _buildProductItem(
-    Map<String, dynamic> item,
-  ) {
-    final name =
-        item['product_name']?.toString() ?? '';
+  Widget _buildProductItem(Map<String, dynamic> item) {
+    final name = item['product_name']?.toString() ?? '';
 
-    final image =
-        item['image']?.toString() ?? '';
+    final image = item['image']?.toString() ?? '';
 
-    final price = double.tryParse(
-          item['price']?.toString() ?? '0',
-        ) ??
-        0;
+    final price = double.tryParse(item['price']?.toString() ?? '0') ?? 0;
 
-    final quantity =
-        int.tryParse(
-              item['quantity']?.toString() ?? '0',
-            ) ??
-            0;
+    final quantity = int.tryParse(item['quantity']?.toString() ?? '0') ?? 0;
 
-    final size =
-        item['size']?.toString();
+    final size = item['size']?.toString();
 
-    final color =
-        item['color']?.toString();
+    final color = item['color']?.toString();
 
-    final itemTotal =
-        price * quantity;
+    final itemTotal = price * quantity;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -606,25 +285,20 @@ class _OrderDetailsScreenState
       decoration: BoxDecoration(
         color: const Color(0xff191D1E),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withOpacity(.06),
-        ),
+        border: Border.all(color: Colors.white.withOpacity(.06)),
       ),
       child: Row(
         children: [
           // Product Image
           ClipRRect(
-            borderRadius:
-                BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12),
             child: image.isNotEmpty
                 ? Image.network(
                     image,
                     width: 72,
                     height: 72,
                     fit: BoxFit.cover,
-                    errorBuilder:
-                        (_, _, _) =>
-                            _imagePlaceholder(),
+                    errorBuilder: (_, _, _) => _imagePlaceholder(),
                   )
                 : _imagePlaceholder(),
           ),
@@ -634,14 +308,12 @@ class _OrderDetailsScreenState
           // Product Information
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   name,
                   maxLines: 2,
-                  overflow:
-                      TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
                     color: Colors.white,
                     fontSize: 13,
@@ -651,26 +323,15 @@ class _OrderDetailsScreenState
 
                 const SizedBox(height: 6),
 
-                if (size != null &&
-                    size.isNotEmpty)
-                  Text(
-                    "Size: $size",
-                    style: _smallTextStyle(),
-                  ),
+                if (size != null && size.isNotEmpty)
+                  Text("Size: $size", style: _smallTextStyle()),
 
-                if (color != null &&
-                    color.isNotEmpty)
-                  Text(
-                    "Color: $color",
-                    style: _smallTextStyle(),
-                  ),
+                if (color != null && color.isNotEmpty)
+                  Text("Color: $color", style: _smallTextStyle()),
 
                 const SizedBox(height: 4),
 
-                Text(
-                  "Qty: $quantity",
-                  style: _smallTextStyle(),
-                ),
+                Text("Qty: $quantity", style: _smallTextStyle()),
               ],
             ),
           ),
@@ -701,12 +362,9 @@ class _OrderDetailsScreenState
   }) {
     return _sectionContainer(
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle(
-            "Payment Summary",
-          ),
+          _buildSectionTitle("Payment Summary"),
 
           const SizedBox(height: 15),
 
@@ -724,34 +382,25 @@ class _OrderDetailsScreenState
   // CUSTOMER DETAILS
   // =============================================================
 
-  Widget _buildCustomerDetails(
-    Map<String, dynamic> order,
-  ) {
+  Widget _buildCustomerDetails(Map<String, dynamic> order) {
     return _sectionContainer(
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle(
-            "Customer Details",
-          ),
+          _buildSectionTitle("Customer Details"),
 
           const SizedBox(height: 14),
 
           _detailRow(
             Icons.person_outline_rounded,
-            order['customer_name']
-                    ?.toString() ??
-                '',
+            order['customer_name']?.toString() ?? '',
           ),
 
           const SizedBox(height: 10),
 
           _detailRow(
             Icons.phone_outlined,
-            order['customer_phone']
-                    ?.toString() ??
-                '',
+            order['customer_phone']?.toString() ?? '',
           ),
         ],
       ),
@@ -762,25 +411,16 @@ class _OrderDetailsScreenState
   // DELIVERY ADDRESS
   // =============================================================
 
-  Widget _buildDeliveryAddress(
-    Map<String, dynamic> order,
-  ) {
+  Widget _buildDeliveryAddress(Map<String, dynamic> order) {
     return _sectionContainer(
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle(
-            "Delivery Address",
-          ),
+          _buildSectionTitle("Delivery Address"),
 
           const SizedBox(height: 14),
 
-          _detailRow(
-            Icons.home_outlined,
-            order['address']?.toString() ??
-                '',
-          ),
+          _detailRow(Icons.home_outlined, order['address']?.toString() ?? ''),
 
           const SizedBox(height: 10),
 
@@ -805,19 +445,11 @@ class _OrderDetailsScreenState
   // DETAIL ROW
   // =============================================================
 
-  Widget _detailRow(
-    IconData icon,
-    String text,
-  ) {
+  Widget _detailRow(IconData icon, String text) {
     return Row(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          color: Colors.white38,
-          size: 17,
-        ),
+        Icon(icon, color: Colors.white38, size: 17),
 
         const SizedBox(width: 10),
 
@@ -839,23 +471,15 @@ class _OrderDetailsScreenState
   // PRICE ROW
   // =============================================================
 
-  Widget _priceRow(
-    String title,
-    String value, {
-    bool isTotal = false,
-  }) {
+  Widget _priceRow(String title, String value, {bool isTotal = false}) {
     return Row(
       children: [
         Text(
           title,
           style: GoogleFonts.outfit(
-            color: isTotal
-                ? Colors.white
-                : Colors.white54,
+            color: isTotal ? Colors.white : Colors.white54,
             fontSize: isTotal ? 14 : 11,
-            fontWeight: isTotal
-                ? FontWeight.w700
-                : FontWeight.w500,
+            fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
 
@@ -877,18 +501,14 @@ class _OrderDetailsScreenState
   // SECTION CONTAINER
   // =============================================================
 
-  Widget _sectionContainer({
-    required Widget child,
-  }) {
+  Widget _sectionContainer({required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xff191D1E),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.white.withOpacity(.06),
-        ),
+        border: Border.all(color: Colors.white.withOpacity(.06)),
       ),
       child: child,
     );
@@ -898,9 +518,7 @@ class _OrderDetailsScreenState
   // SECTION TITLE
   // =============================================================
 
-  Widget _buildSectionTitle(
-    String title,
-  ) {
+  Widget _buildSectionTitle(String title) {
     return Text(
       title,
       style: GoogleFonts.outfit(
@@ -915,42 +533,31 @@ class _OrderDetailsScreenState
   // STATUS BADGE
   // =============================================================
 
-  Widget _statusBadge(
-    String status,
-  ) {
-    final normalized =
-        status.toLowerCase();
+  Widget _statusBadge(String status) {
+    final normalized = status.toLowerCase();
 
-    final isPending =
-        normalized == 'pending';
+    final isPending = normalized == 'pending';
 
-    final isCompleted =
-        normalized == 'completed';
+    final isCompleted = normalized == 'completed';
 
     final Color textColor = isPending
         ? const Color(0xffFBBF24)
         : isCompleted
-            ? const Color(0xff6EE7B7)
-            : Colors.white70;
+        ? const Color(0xff6EE7B7)
+        : Colors.white70;
 
     final Color backgroundColor = isPending
         ? const Color(0xff2A2415)
         : isCompleted
-            ? const Color(0xff18251F)
-            : Colors.white.withOpacity(.07);
+        ? const Color(0xff18251F)
+        : Colors.white.withOpacity(.07);
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius:
-            BorderRadius.circular(20),
-        border: Border.all(
-          color: textColor.withOpacity(.18),
-        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: textColor.withOpacity(.18)),
       ),
       child: Text(
         status.toUpperCase(),
@@ -973,11 +580,7 @@ class _OrderDetailsScreenState
       width: 72,
       height: 72,
       color: const Color(0xff111516),
-      child: const Icon(
-        Icons.image_outlined,
-        color: Colors.white24,
-        size: 25,
-      ),
+      child: const Icon(Icons.image_outlined, color: Colors.white24, size: 25),
     );
   }
 
@@ -991,16 +594,12 @@ class _OrderDetailsScreenState
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xff191D1E),
-        borderRadius:
-            BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         "Unable to load order items.",
         textAlign: TextAlign.center,
-        style: GoogleFonts.outfit(
-          color: Colors.white54,
-          fontSize: 11,
-        ),
+        style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11),
       ),
     );
   }
@@ -1015,16 +614,12 @@ class _OrderDetailsScreenState
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xff191D1E),
-        borderRadius:
-            BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         "No items found for this order.",
         textAlign: TextAlign.center,
-        style: GoogleFonts.outfit(
-          color: Colors.white54,
-          fontSize: 11,
-        ),
+        style: GoogleFonts.outfit(color: Colors.white54, fontSize: 11),
       ),
     );
   }
@@ -1034,19 +629,14 @@ class _OrderDetailsScreenState
   // =============================================================
 
   TextStyle _smallTextStyle() {
-    return GoogleFonts.outfit(
-      color: Colors.white38,
-      fontSize: 10,
-    );
+    return GoogleFonts.outfit(color: Colors.white38, fontSize: 10);
   }
 
   // =============================================================
   // SHORT ORDER ID
   // =============================================================
 
-  String _shortOrderId(
-    dynamic id,
-  ) {
+  String _shortOrderId(dynamic id) {
     if (id == null) {
       return "------";
     }
@@ -1057,25 +647,20 @@ class _OrderDetailsScreenState
       return value;
     }
 
-    return value
-        .substring(0, 8)
-        .toUpperCase();
+    return value.substring(0, 8).toUpperCase();
   }
 
   // =============================================================
   // FORMAT DATE
   // =============================================================
 
-  String _formatDate(
-    String date,
-  ) {
+  String _formatDate(String date) {
     if (date.isEmpty) {
       return "";
     }
 
     try {
-      final parsed =
-          DateTime.parse(date).toLocal();
+      final parsed = DateTime.parse(date).toLocal();
 
       return "${parsed.day.toString().padLeft(2, '0')}/"
           "${parsed.month.toString().padLeft(2, '0')}/"

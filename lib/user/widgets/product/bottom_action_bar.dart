@@ -1,5 +1,8 @@
+
+
+
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:shoppee_world/user/core/theme/app_tokens.dart';
 
 class BottomActionBar extends StatelessWidget {
   final VoidCallback onAddToCart;
@@ -15,26 +18,28 @@ class BottomActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppTokens.radiusButton),
+    );
+
     return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xff080C0D),
+      decoration: const BoxDecoration(
+        color: AppTokens.background,
         border: Border(
           top: BorderSide(
-            color: Colors.white.withOpacity(.06),
+            color: AppTokens.border,
             width: 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(.25),
-            blurRadius: 20,
-            offset: const Offset(0, -8),
-          ),
-        ],
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+          padding: const EdgeInsets.fromLTRB(
+            AppTokens.gutter,
+            AppTokens.s12,
+            AppTokens.gutter,
+            AppTokens.s12,
+          ),
           child: Row(
             children: [
               // ======================================================
@@ -42,90 +47,51 @@ class BottomActionBar extends StatelessWidget {
               // ======================================================
 
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed:
-                      isOutOfStock ? null : onAddToCart,
-                  icon: Icon(
-                    Icons.shopping_bag_outlined,
-                    color: isOutOfStock
-                        ? Colors.white24
-                        : Colors.white,
-                    size: 19,
-                  ),
+                child: OutlinedButton(
+                  onPressed: isOutOfStock ? null : onAddToCart,
                   style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(54),
+                    minimumSize: const Size.fromHeight(48),
+                    foregroundColor: AppTokens.textPrimary,
+                    disabledForegroundColor:
+                        AppTokens.textTertiary,
                     side: BorderSide(
                       color: isOutOfStock
-                          ? Colors.white10
-                          : Colors.white.withOpacity(.25),
+                          ? AppTokens.border
+                          : AppTokens.borderStrong,
                       width: 1,
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    backgroundColor: isOutOfStock
-                        ? const Color(0xff111415)
-                        : const Color(0xff191D1E),
+                    shape: shape,
                     elevation: 0,
+                    textStyle: AppTokens.button,
                   ),
-                  label: Text(
-                    isOutOfStock
-                        ? "Out of Stock"
-                        : "Add to Cart",
-                    style: GoogleFonts.outfit(
-                      color: isOutOfStock
-                          ? Colors.white24
-                          : Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
+                  child: Text(
+                    isOutOfStock ? "Out of stock" : "Add to cart",
                   ),
                 ),
               ),
 
-              const SizedBox(width: 12),
+              const SizedBox(width: AppTokens.s12),
 
               // ======================================================
               // BUY NOW
               // ======================================================
 
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed:
-                      isOutOfStock ? null : onBuyNow,
-                  icon: Icon(
-                    Icons.flash_on_rounded,
-                    color: isOutOfStock
-                        ? Colors.white24
-                        : Colors.black,
-                    size: 19,
-                  ),
+                child: ElevatedButton(
+                  onPressed: isOutOfStock ? null : onBuyNow,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isOutOfStock
-                        ? const Color(0xff191D1E)
-                        : Colors.white,
-                    disabledBackgroundColor:
-                        const Color(0xff191D1E),
+                    backgroundColor: AppTokens.accent,
+                    foregroundColor: AppTokens.onAccent,
+                    disabledBackgroundColor: AppTokens.surface,
                     disabledForegroundColor:
-                        Colors.white24,
-                    foregroundColor: Colors.black,
-                    minimumSize: const Size.fromHeight(54),
+                        AppTokens.textTertiary,
+                    minimumSize: const Size.fromHeight(48),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
+                    shape: shape,
+                    textStyle: AppTokens.button,
                   ),
-                  label: Text(
-                    isOutOfStock
-                        ? "Unavailable"
-                        : "Buy Now",
-                    style: GoogleFonts.outfit(
-                      color: isOutOfStock
-                          ? Colors.white24
-                          : Colors.black,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
+                  child: Text(
+                    isOutOfStock ? "Unavailable" : "Buy now",
                   ),
                 ),
               ),

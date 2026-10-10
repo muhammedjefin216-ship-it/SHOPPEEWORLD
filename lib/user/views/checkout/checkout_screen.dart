@@ -12,8 +12,15 @@ import '../../widgets/checkout/address_form.dart';
 import '../../widgets/checkout/checkout_order_summary.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
+  // ==========================================================
+  // SELECTED PRODUCT IMAGES
+  // ==========================================================
+
+  final List<String> selectedProductImages;
+
   const CheckoutScreen({
     super.key,
+    this.selectedProductImages = const [],
   });
 
   @override
@@ -29,8 +36,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
-  final cityController = TextEditingController();
+  final placeController = TextEditingController();
+  final landmarkController = TextEditingController();
   final stateController = TextEditingController();
+  final districtController = TextEditingController();
   final pincodeController = TextEditingController();
 
   // ==========================================================
@@ -48,8 +57,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     nameController.dispose();
     phoneController.dispose();
     addressController.dispose();
-    cityController.dispose();
+    placeController.dispose();
+    landmarkController.dispose();
     stateController.dispose();
+    districtController.dispose();
     pincodeController.dispose();
 
     super.dispose();
@@ -157,8 +168,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     nameController: nameController,
                     phoneController: phoneController,
                     addressController: addressController,
-                    cityController: cityController,
+                    placeController: placeController,
+                    landmarkController: landmarkController,
                     stateController: stateController,
+                    districtController: districtController,
                     pincodeController: pincodeController,
                   ),
 
@@ -302,7 +315,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (nameController.text.trim().isEmpty ||
         phoneController.text.trim().isEmpty ||
         addressController.text.trim().isEmpty ||
-        cityController.text.trim().isEmpty ||
+        placeController.text.trim().isEmpty ||
+        landmarkController.text.trim().isEmpty ||
+        districtController.text.trim().isEmpty ||
         stateController.text.trim().isEmpty ||
         pincodeController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -359,7 +374,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }).toList();
 
     // ==========================================================
-    // WHATSAPP PRODUCTS
+    // WHATSAPP PRODUCTS DATA
     // ==========================================================
 
     final products = cartItems.map((item) {
@@ -371,6 +386,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         "color": item.selectedColor,
       };
     }).toList();
+
+    // ==========================================================
+    // DEBUG - SELECTED IMAGES
+    // ==========================================================
+
+    print(
+      "SELECTED PRODUCT IMAGES: "
+      "${widget.selectedProductImages}",
+    );
 
     // ==========================================================
     // SAVE ORDER + SEND WHATSAPP
@@ -385,16 +409,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         customerName: nameController.text.trim(),
         customerPhone: phoneController.text.trim(),
         address: addressController.text.trim(),
-        city: cityController.text.trim(),
+        place: placeController.text.trim(),
+        landmark: landmarkController.text.trim(),
+        district: districtController.text.trim(),
         state: stateController.text.trim(),
         pincode: pincodeController.text.trim(),
         totalAmount: cartNotifier.total,
         items: orderItems,
       );
-
-      // --------------------------------------------------------
-      // 2. SEND ORDER TO WHATSAPP
-      // --------------------------------------------------------
 
       await WhatsAppService.sendOrder(
         phoneNumber: "917592088952",
@@ -405,7 +427,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
         address: addressController.text.trim(),
 
-        city: cityController.text.trim(),
+        place: placeController.text.trim(),
+
+        landmark: landmarkController.text.trim(),
+
+        district: districtController.text.trim(),
 
         state: stateController.text.trim(),
 
@@ -418,18 +444,25 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         deliveryCharge: cartNotifier.deliveryCharge,
 
         total: cartNotifier.total,
+
+        productImages: widget.selectedProductImages,
+
       );
+
+      // --------------------------------------------------------
+      // 3. CHECK MOUNTED
+      // --------------------------------------------------------
 
       if (!mounted) return;
 
       // --------------------------------------------------------
-      // 3. CLEAR CART
+      // 4. CLEAR CART
       // --------------------------------------------------------
 
       ref.read(cartProvider.notifier).clearCart();
 
       // --------------------------------------------------------
-      // 4. ORDER SUCCESS
+      // 5. ORDER SUCCESS
       // --------------------------------------------------------
 
       Navigator.pushReplacement(
@@ -438,7 +471,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           builder: (_) => const OrderSuccessScreen(),
         ),
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print("❌ ORDER ERROR: $e");
+      print("❌ STACK TRACE: $stackTrace");
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -446,7 +482,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           behavior: SnackBarBehavior.floating,
           backgroundColor: const Color(0xff191D1E),
           content: Text(
-            "Could not place order. Please try again.",
+            "Error: $e",
             style: GoogleFonts.outfit(
               color: Colors.white,
             ),

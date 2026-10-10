@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shoppee_world/user/core/theme/app_tokens.dart';
 
 class CategoryItem extends StatelessWidget {
   final String name;
@@ -35,56 +36,52 @@ class CategoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: SizedBox(
         width: 82,
-        margin: const EdgeInsets.only(right: 2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               height: 58,
               width: 58,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? Colors.white
-                    : const Color(0xff191D1E),
-                borderRadius: BorderRadius.circular(14),
+                color: AppTokens.surface,
+                borderRadius: BorderRadius.circular(
+                  AppTokens.radiusLg,
+                ),
+                border: Border.all(
+                  color: isSelected
+                      ? AppTokens.accent
+                      : AppTokens.border,
+                  width: isSelected ? 1.5 : 1,
+                ),
               ),
               clipBehavior: Clip.antiAlias,
               child: imageUrl != null && imageUrl!.isNotEmpty
                   ? Image.network(
                       imageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) {
-                        return Icon(
-                          _getIcon(),
-                          size: 25,
-                          color: isSelected
-                              ? Colors.black
-                              : Colors.white,
-                        );
+                      errorBuilder: (_, _, _) {
+                        return _buildFallbackIcon();
                       },
                     )
-                  : Icon(
-                      _getIcon(),
-                      size: 25,
-                      color: isSelected
-                          ? Colors.black
-                          : Colors.white,
-                    ),
+                  : _buildFallbackIcon(),
             ),
-            const SizedBox(height: 7),
+            const SizedBox(height: AppTokens.s8),
             Text(
               name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
+              style: AppTokens.caption.copyWith(
                 fontSize: 11,
+                color: isSelected
+                    ? AppTokens.accent
+                    : AppTokens.textSecondary,
                 fontWeight: isSelected
-                    ? FontWeight.w700
-                    : FontWeight.w500,
+                    ? FontWeight.w600
+                    : FontWeight.w400,
               ),
             ),
           ],
@@ -92,4 +89,17 @@ class CategoryItem extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildFallbackIcon() {
+    return Center(
+      child: Icon(
+        _getIcon(),
+        size: 25,
+        color: isSelected
+            ? AppTokens.accent
+            : AppTokens.textSecondary,
+      ),
+    );
+  }
 }
+

@@ -1,72 +1,372 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+import 'package:shoppee_world/user/core/theme/app_tokens.dart';
+import 'package:shoppee_world/user/viewmodel/order/order_provider.dart';
 import 'package:shoppee_world/user/views/orders/order_details_screen.dart';
 
-import '../../viewmodel/order/order_provider.dart';
+class OrdersScreen extends ConsumerStatefulWidget {
+  final VoidCallback onBack;
 
-class OrdersScreen extends ConsumerWidget {
-  const OrdersScreen({super.key});
+  const OrdersScreen({
+    super.key,
+    required this.onBack,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends ConsumerState<OrdersScreen> {
+  bool _isClearing = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      ref.invalidate(myOrdersProvider);
+    });
+  }
+
+  Future<void> _refreshOrders() async {
+    ref.invalidate(myOrdersProvider);
+    await ref.read(myOrdersProvider.future);
+  }
+
+  // CLEAR ALL ORDERS
+
+  Future<void> _clearAllOrders() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTokens.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              AppTokens.radiusSheet,
+            ),
+            side: const BorderSide(color: AppTokens.border),
+          ),
+          title: Text(
+            'Clear Order History?',
+            style: AppTokens.sectionTitle,
+          ),
+          content: Text(
+            'All your orders will be removed from your order history. '
+            'Your orders will still be safely stored in our system.',
+            style: AppTokens.body,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                'Cancel',
+                style: AppTokens.body.copyWith(
+                  color: AppTokens.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                'Clear All',
+                style: AppTokens.bodyStrong.copyWith(
+                  color: AppTokens.danger,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      _isClearing = true;
+    });
+
+    try {
+      final repository = ref.read(orderRepositoryProvider);
+
+      await repository.clearOrderHistory();
+      ref.invalidate(myOrdersProvider);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order history cleared'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to clear order history: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isClearing = false;
+        });
+      }
+    }
+  }
+
+  // HIDE SINGLE ORDER
+
+  Future<void> _hideOrder(String orderId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTokens.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              AppTokens.radiusSheet,
+            ),
+            side: const BorderSide(color: AppTokens.border),
+          ),
+          title: Text(
+            'Hide Order?',
+            style: AppTokens.sectionTitle,
+          ),
+          content: Text(
+            'This order will be removed from your order history.',
+            style: AppTokens.body,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                'Cancel',
+                style: AppTokens.body.copyWith(
+                  color: AppTokens.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                'Hide',
+                style: AppTokens.bodyStrong.copyWith(
+                  color: AppTokens.danger,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final repository = ref.read(orderRepositoryProvider);
+
+      await repository.hideOrder(orderId);
+      ref.invalidate(myOrdersProvider);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order removed from history'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to hide order: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final ordersAsync = ref.watch(myOrdersProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xff080C0D),
+      backgroundColor: AppTokens.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xff080C0D),
+        backgroundColor: AppTokens.background,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: widget.onBack,
+          tooltip: 'Go back',
           icon: const Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
+            color: AppTokens.textPrimary,
             size: 19,
           ),
         ),
-        centerTitle: true,
         title: Text(
-          "My Orders",
-          style: GoogleFonts.outfit(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
+          'My Orders',
+          style: AppTokens.headline.copyWith(
+            fontSize: 21,
           ),
         ),
+        centerTitle: true,
+        actions: [
+          if (!_isClearing)
+            ordersAsync.maybeWhen(
+              data: (orders) {
+                if (orders.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return IconButton(
+                  onPressed: _clearAllOrders,
+                  tooltip: 'Clear order history',
+                  icon: const Icon(
+                    Icons.delete_sweep_outlined,
+                    color: AppTokens.textSecondary,
+                  ),
+                );
+              },
+              orElse: () => const SizedBox.shrink(),
+            ),
+          if (_isClearing)
+            const Padding(
+              padding: EdgeInsets.all(AppTokens.s16),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppTokens.accent,
+                ),
+              ),
+            ),
+        ],
       ),
       body: ordersAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(
-            color: Colors.white,
-          ),
-        ),
+        // LOADING
 
-        error: (error, stack) => _buildError(),
+        loading: () {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: AppTokens.accent,
+              strokeWidth: 2.5,
+            ),
+          );
+        },
+
+        // ERROR
+
+        error: (error, stackTrace) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppTokens.s24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _StateIcon(
+                    icon: Icons.error_outline_rounded,
+                    color: AppTokens.danger,
+                  ),
+                  const SizedBox(height: AppTokens.s20),
+                  Text(
+                    'Something went wrong',
+                    textAlign: TextAlign.center,
+                    style: AppTokens.sectionTitle,
+                  ),
+                  const SizedBox(height: AppTokens.s8),
+                  Text(
+                    error.toString(),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTokens.caption.copyWith(
+                      color: AppTokens.textTertiary,
+                    ),
+                  ),
+                  const SizedBox(height: AppTokens.s24),
+                  ElevatedButton(
+                    onPressed: _refreshOrders,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTokens.accent,
+                      foregroundColor: AppTokens.onAccent,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppTokens.radiusButton,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      'Try Again',
+                      style: AppTokens.button.copyWith(
+                        color: AppTokens.onAccent,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+
+        // DATA
 
         data: (orders) {
           if (orders.isEmpty) {
-            return _buildEmpty();
+            return RefreshIndicator(
+              onRefresh: _refreshOrders,
+              color: AppTokens.onAccent,
+              backgroundColor: AppTokens.accent,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.sizeOf(context).height * 0.2,
+                  ),
+                  _EmptyOrders(
+                    onExplore: widget.onBack,
+                  ),
+                ],
+              ),
+            );
           }
 
           return RefreshIndicator(
-            color: Colors.black,
-            backgroundColor: Colors.white,
-            onRefresh: () async {
-              ref.invalidate(myOrdersProvider);
-              await ref.read(myOrdersProvider.future);
-            },
-            child: ListView.separated(
+            onRefresh: _refreshOrders,
+            color: AppTokens.onAccent,
+            backgroundColor: AppTokens.accent,
+            child: ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
               ),
-              padding: const EdgeInsets.fromLTRB(18, 10, 18, 30),
+              padding: const EdgeInsets.fromLTRB(
+                AppTokens.gutter,
+                AppTokens.s8,
+                AppTokens.gutter,
+                AppTokens.s32,
+              ),
               itemCount: orders.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 14),
               itemBuilder: (context, index) {
+                final order = orders[index];
+
                 return _OrderCard(
-                  order: orders[index],
+                  order: order,
+                  onHide: () {
+                    _hideOrder(order['id'].toString());
+                  },
                 );
               },
             ),
@@ -75,306 +375,386 @@ class OrdersScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Widget _buildEmpty() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: 75,
-              width: 75,
-              decoration: BoxDecoration(
-                color: const Color(0xff191D1E),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withOpacity(.06),
-                ),
-              ),
-              child: const Icon(
-                Icons.shopping_bag_outlined,
-                color: Colors.white54,
-                size: 32,
-              ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              "No Orders Yet",
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 7),
-            Text(
-              "Your completed orders will appear here.",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(
-                color: Colors.white38,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
+// STATE ICON
+
+class _StateIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+
+  const _StateIcon({
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 78,
+      width: 78,
+      decoration: BoxDecoration(
+        color: AppTokens.surface,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppTokens.border),
       ),
-    );
-  }
-
-  Widget _buildError() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(30),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.error_outline_rounded,
-              color: Colors.white38,
-              size: 42,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "Unable to load orders",
-              style: GoogleFonts.outfit(
-                color: Colors.white70,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
+      child: Icon(
+        icon,
+        color: color,
+        size: 36,
       ),
     );
   }
 }
 
-class _OrderCard extends StatelessWidget {
-  final Map<String, dynamic> order;
+// EMPTY ORDERS
 
-  const _OrderCard({
-    required this.order,
+class _EmptyOrders extends StatelessWidget {
+  final VoidCallback onExplore;
+
+  const _EmptyOrders({
+    required this.onExplore,
   });
 
   @override
   Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.s24,
+      ),
+      child: Column(
+        children: [
+          Container(
+            height: 112,
+            width: 112,
+            decoration: BoxDecoration(
+              color: AppTokens.surface,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppTokens.border),
+            ),
+            child: const Icon(
+              Icons.shopping_bag_outlined,
+              color: AppTokens.accent,
+              size: 48,
+            ),
+          ),
+          const SizedBox(height: AppTokens.s24),
+          Text(
+            'No orders yet',
+            style: AppTokens.headline.copyWith(
+              fontSize: 22,
+            ),
+          ),
+          const SizedBox(height: AppTokens.s8),
+          Text(
+            'Your orders will appear here\nonce you make a purchase.',
+            textAlign: TextAlign.center,
+            style: AppTokens.body,
+          ),
+          const SizedBox(height: AppTokens.s24),
+          ElevatedButton(
+            onPressed: onExplore,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTokens.accent,
+              foregroundColor: AppTokens.onAccent,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.s24,
+                vertical: AppTokens.s16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  AppTokens.radiusButton,
+                ),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Explore Products',
+                  style: AppTokens.button.copyWith(
+                    color: AppTokens.onAccent,
+                  ),
+                ),
+                const SizedBox(width: AppTokens.s8),
+                const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ORDER CARD
+
+class _OrderCard extends StatelessWidget {
+  final Map<String, dynamic> order;
+  final VoidCallback onHide;
+
+  const _OrderCard({
+    required this.order,
+    required this.onHide,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final orderId = order['id']?.toString() ?? '';
     final status = order['status']?.toString() ?? 'pending';
-
-    final total = double.tryParse(
-          order['total_amount']?.toString() ?? '0',
-        ) ??
-        0;
-
+    final totalAmount = order['total_amount']?.toString() ?? '0';
+    final customerName = order['customer_name']?.toString() ?? '';
     final createdAt = order['created_at']?.toString() ?? '';
 
+    final statusColor = _statusColor(status);
+
     return Container(
-      padding: const EdgeInsets.all(15),
+      margin: const EdgeInsets.only(
+        bottom: AppTokens.s16,
+      ),
+      padding: const EdgeInsets.all(AppTokens.s16),
       decoration: BoxDecoration(
-        color: const Color(0xff191D1E),
-        borderRadius: BorderRadius.circular(18),
+        color: AppTokens.surface,
+        borderRadius: BorderRadius.circular(
+          AppTokens.radiusSheet,
+        ),
         border: Border.all(
-          color: Colors.white.withOpacity(.06),
+          color: AppTokens.border,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ORDER ID AND STATUS
+
           Row(
             children: [
               Container(
                 height: 42,
                 width: 42,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(.07),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppTokens.background,
+                  borderRadius: BorderRadius.circular(
+                    AppTokens.radiusMd,
+                  ),
                 ),
                 child: const Icon(
                   Icons.shopping_bag_outlined,
-                  color: Colors.white,
-                  size: 20,
+                  color: AppTokens.accent,
+                  size: 22,
                 ),
               ),
-
-              const SizedBox(width: 12),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Order #${_shortOrderId(order['id'])}",
-                      style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _formatDate(createdAt),
-                      style: GoogleFonts.outfit(
-                        color: Colors.white38,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              _StatusBadge(status: status),
-            ],
-          ),
-
-          const SizedBox(height: 15),
-
-          Divider(
-            height: 1,
-            color: Colors.white.withOpacity(.07),
-          ),
-
-          const SizedBox(height: 14),
-
-          Row(
-            children: [
-              Text(
-                "Total Amount",
-                style: GoogleFonts.outfit(
-                  color: Colors.white54,
-                  fontSize: 11,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                "₹${total.toStringAsFixed(0)}",
-                style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          Row(
-            children: [
-              const Icon(
-                Icons.location_on_outlined,
-                color: Colors.white38,
-                size: 15,
-              ),
-              const SizedBox(width: 6),
+              const SizedBox(width: AppTokens.s12),
               Expanded(
                 child: Text(
-                  "${order['city'] ?? ''}, ${order['state'] ?? ''}",
+                  'Order #$orderId',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    color: Colors.white38,
-                    fontSize: 10,
+                  style: AppTokens.bodyStrong.copyWith(
+                    color: AppTokens.textPrimary,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
+              const SizedBox(width: AppTokens.s8),
+              IconButton(
+                onPressed: onHide,
+                tooltip: 'Hide order',
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
+                ),
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  color: AppTokens.textSecondary,
+                  size: 21,
+                ),
+              ),
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: AppTokens.s12),
 
-         SizedBox(
-  width: double.infinity,
-  height: 40,
-  child: OutlinedButton(
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => OrderDetailsScreen(
-            order: order,
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.s12,
+                vertical: AppTokens.s8,
+              ),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(
+                  AppTokens.radiusSm,
+                ),
+                border: Border.all(
+                  color: statusColor.withOpacity(0.25),
+                ),
+              ),
+              child: Text(
+                status.toUpperCase(),
+                style: AppTokens.overline.copyWith(
+                  color: statusColor,
+                  fontSize: 10,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
           ),
-        ),
-      );
-    },
-    style: OutlinedButton.styleFrom(
-      foregroundColor: Colors.white,
-      side: BorderSide(
-        color: Colors.white.withOpacity(.10),
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(11),
-      ),
-    ),
-    child: Text(
-      "View Details",
-      style: GoogleFonts.outfit(
-        color: Colors.white,
-        fontSize: 11,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-  ),
-),
+
+          const SizedBox(height: AppTokens.s16),
+
+          if (customerName.isNotEmpty) ...[
+            Text(
+              customerName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTokens.bodyStrong,
+            ),
+            const SizedBox(height: AppTokens.s12),
+          ],
+
+          // ORDER TOTAL
+
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.s12,
+              vertical: AppTokens.s12,
+            ),
+            decoration: BoxDecoration(
+              color: AppTokens.background,
+              borderRadius: BorderRadius.circular(
+                AppTokens.radiusMd,
+              ),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  'Total amount',
+                  style: AppTokens.body,
+                ),
+                const Spacer(),
+                Flexible(
+                  child: Text(
+                    '₹$totalAmount',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: AppTokens.bodyStrong.copyWith(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          if (createdAt.isNotEmpty) ...[
+            const SizedBox(height: AppTokens.s12),
+            Row(
+              children: [
+                const Icon(
+                  Icons.schedule_rounded,
+                  color: AppTokens.textTertiary,
+                  size: 15,
+                ),
+                const SizedBox(width: AppTokens.s8),
+                Expanded(
+                  child: Text(
+                    createdAt,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTokens.caption.copyWith(
+                      color: AppTokens.textTertiary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          const SizedBox(height: AppTokens.s16),
+
+          // VIEW DETAILS
+
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () async {
+                final updated = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => OrderDetailsScreen(
+                      order: order,
+                    ),
+                  ),
+                );
+
+                if (updated == true) {
+                  // Preserve the existing return behavior.
+                }
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTokens.accent,
+                side: const BorderSide(
+                  color: AppTokens.borderStrong,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppTokens.s12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    AppTokens.radiusButton,
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'View Details',
+                    style: AppTokens.button.copyWith(
+                      color: AppTokens.accent,
+                    ),
+                  ),
+                  const SizedBox(width: AppTokens.s8),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 17,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  String _shortOrderId(dynamic id) {
-    if (id == null) return "------";
-
-    final value = id.toString();
-
-    if (value.length <= 8) {
-      return value;
-    }
-
-    return value.substring(0, 8).toUpperCase();
-  }
-
-  String _formatDate(String date) {
-    if (date.isEmpty) return "";
-
-    try {
-      final parsed = DateTime.parse(date).toLocal();
-
-      return "${parsed.day.toString().padLeft(2, '0')}/"
-          "${parsed.month.toString().padLeft(2, '0')}/"
-          "${parsed.year}";
-    } catch (_) {
-      return date;
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return const Color(0xFF65A9FF);
+      case 'processing':
+        return const Color(0xFFFFB454);
+      case 'shipped':
+        return const Color(0xFFB69CFF);
+      case 'delivered':
+        return AppTokens.success;
+      case 'cancelled':
+      case 'canceled':
+        return AppTokens.danger;
+      case 'pending':
+      default:
+        return AppTokens.accent;
     }
   }
 }
 
-class _StatusBadge extends StatelessWidget {
-  final String status;
-
-  const _StatusBadge({
-    required this.status,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.07),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        status.toUpperCase(),
-        style: GoogleFonts.outfit(
-          color: Colors.white70,
-          fontSize: 8,
-          fontWeight: FontWeight.w700,
-          letterSpacing: .5,
-        ),
-      ),
-    );
-  }
-}

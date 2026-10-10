@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,7 +27,6 @@ class _AddProductScreenState
 
   final nameController = TextEditingController();
   final ratingController = TextEditingController();
-
   final originalPriceController = TextEditingController();
   final offerPriceController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -47,7 +47,6 @@ class _AddProductScreenState
   List<XFile> selectedImages = [];
   List<Uint8List> selectedImageBytes = [];
 
-  // Existing images from Supabase
   List<String> existingImageUrls = [];
 
   @override
@@ -58,7 +57,9 @@ class _AddProductScreenState
       final product = widget.product!;
 
       nameController.text = product.name;
-      ratingController.text = product.rating.toString();
+
+      ratingController.text =
+          product.rating.toString();
 
       originalPriceController.text =
           product.originalPrice.toString();
@@ -103,7 +104,6 @@ class _AddProductScreenState
   void dispose() {
     nameController.dispose();
     ratingController.dispose();
-
     originalPriceController.dispose();
     offerPriceController.dispose();
     descriptionController.dispose();
@@ -160,12 +160,26 @@ class _AddProductScreenState
   }
 
   // ============================================================
+  // GET OPTIONAL PRICE
+  // ============================================================
+
+  double _getOptionalPrice(String value) {
+    if (value.trim().isEmpty) {
+      return 0;
+    }
+
+    return double.tryParse(value.trim()) ?? 0;
+  }
+
+  // ============================================================
   // ADD PRODUCT
   // ============================================================
 
   Future<void> _addProduct() async {
     final name = nameController.text.trim();
-    final ratingText = ratingController.text.trim();
+
+    final ratingText =
+        ratingController.text.trim();
 
     final originalPriceText =
         originalPriceController.text.trim();
@@ -186,16 +200,12 @@ class _AddProductScreenState
         _convertToList(colorsController.text);
 
     // ------------------------------------------------------------
-    // VALIDATION
+    // REQUIRED FIELD VALIDATION
     // ------------------------------------------------------------
 
     if (name.isEmpty ||
-        ratingText.isEmpty ||
-        originalPriceText.isEmpty ||
-        offerPriceText.isEmpty ||
         description.isEmpty ||
         stockText.isEmpty ||
-        sizes.isEmpty ||
         colors.isEmpty ||
         selectedCategoryId == null ||
         selectedImages.isEmpty ||
@@ -203,7 +213,7 @@ class _AddProductScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Please fill all fields and select at least one image",
+            "Please fill all required fields and select at least one image",
           ),
         ),
       );
@@ -211,27 +221,79 @@ class _AddProductScreenState
       return;
     }
 
-    final price = double.tryParse(offerPriceText);
-    final rating = double.tryParse(ratingText);
+    // ------------------------------------------------------------
+    // OPTIONAL VALUES
+    // ------------------------------------------------------------
 
-    final originalPrice =
-        double.tryParse(originalPriceText);
+    final rating = ratingText.isEmpty
+        ? 0.0
+        : double.tryParse(ratingText);
 
-    final offerPrice =
-        double.tryParse(offerPriceText);
+    final originalPrice = _getOptionalPrice(
+      originalPriceText,
+    );
+
+    final offerPrice = _getOptionalPrice(
+      offerPriceText,
+    );
+
+    // ------------------------------------------------------------
+    // VALIDATE OPTIONAL RATING
+    // ------------------------------------------------------------
+
+    if (rating == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Please enter a valid rating",
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    // ------------------------------------------------------------
+    // PRICE LOGIC
+    //
+    // If both prices are empty:
+    // originalPrice = 0
+    // offerPrice = 0
+    //
+    // If only original price is entered:
+    // offer price = original price
+    //
+    // If only offer price is entered:
+    // original price = offer price
+    // ------------------------------------------------------------
+
+    double finalOriginalPrice = originalPrice;
+    double finalOfferPrice = offerPrice;
+
+    if (originalPriceText.isEmpty &&
+        offerPriceText.isNotEmpty) {
+      finalOriginalPrice = finalOfferPrice;
+    }
+
+    if (offerPriceText.isEmpty &&
+        originalPriceText.isNotEmpty) {
+      finalOfferPrice = finalOriginalPrice;
+    }
+
+    final price = finalOfferPrice;
+
+    // ------------------------------------------------------------
+    // STOCK VALIDATION
+    // ------------------------------------------------------------
 
     final stockQuantity =
         int.tryParse(stockText);
 
-    if (price == null ||
-        rating == null ||
-        originalPrice == null ||
-        offerPrice == null ||
-        stockQuantity == null) {
+    if (stockQuantity == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Please enter valid numeric values",
+            "Please enter a valid stock quantity",
           ),
         ),
       );
@@ -239,8 +301,12 @@ class _AddProductScreenState
       return;
     }
 
-    if (originalPrice <= 0 ||
-        offerPrice <= 0 ||
+    // ------------------------------------------------------------
+    // PRICE VALIDATION
+    // ------------------------------------------------------------
+
+    if (finalOriginalPrice < 0 ||
+        finalOfferPrice < 0 ||
         stockQuantity < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -253,7 +319,8 @@ class _AddProductScreenState
       return;
     }
 
-    if (offerPrice > originalPrice) {
+    if (finalOfferPrice > finalOriginalPrice &&
+        finalOriginalPrice > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -296,15 +363,25 @@ class _AddProductScreenState
           await _productRepository.addProduct(
         name: name,
         image: imageUrls.first,
-        // Actual selling price = offer price.
+
+        // Actual selling price.
         price: price,
+
         rating: rating,
+
         categoryId: selectedCategoryId!,
-        originalPrice: originalPrice,
-        offerPrice: offerPrice,
+
+        originalPrice: finalOriginalPrice,
+
+        offerPrice: finalOfferPrice,
+
         description: description,
+
         stockQuantity: stockQuantity,
+
+        // Optional.
         availableSizes: sizes,
+
         availableColors: colors,
       );
 
@@ -333,7 +410,6 @@ class _AddProductScreenState
 
       nameController.clear();
       ratingController.clear();
-
       originalPriceController.clear();
       offerPriceController.clear();
       descriptionController.clear();
@@ -371,7 +447,9 @@ class _AddProductScreenState
 
   Future<void> _updateProduct() async {
     final name = nameController.text.trim();
-    final ratingText = ratingController.text.trim();
+
+    final ratingText =
+        ratingController.text.trim();
 
     final originalPriceText =
         originalPriceController.text.trim();
@@ -391,19 +469,19 @@ class _AddProductScreenState
     final colors =
         _convertToList(colorsController.text);
 
+    // ------------------------------------------------------------
+    // REQUIRED FIELD VALIDATION
+    // ------------------------------------------------------------
+
     if (name.isEmpty ||
-        ratingText.isEmpty ||
-        originalPriceText.isEmpty ||
-        offerPriceText.isEmpty ||
         description.isEmpty ||
         stockText.isEmpty ||
-        sizes.isEmpty ||
         colors.isEmpty ||
         selectedCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Please fill all fields",
+            "Please fill all required fields",
           ),
         ),
       );
@@ -411,27 +489,65 @@ class _AddProductScreenState
       return;
     }
 
-    final price = double.tryParse(offerPriceText);
-    final rating = double.tryParse(ratingText);
+    // ------------------------------------------------------------
+    // OPTIONAL VALUES
+    // ------------------------------------------------------------
 
-    final originalPrice =
-        double.tryParse(originalPriceText);
+    final rating = ratingText.isEmpty
+        ? 0.0
+        : double.tryParse(ratingText);
 
-    final offerPrice =
-        double.tryParse(offerPriceText);
+    final originalPrice = _getOptionalPrice(
+      originalPriceText,
+    );
+
+    final offerPrice = _getOptionalPrice(
+      offerPriceText,
+    );
+
+    if (rating == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Please enter a valid rating",
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    // ------------------------------------------------------------
+    // PRICE LOGIC
+    // ------------------------------------------------------------
+
+    double finalOriginalPrice = originalPrice;
+    double finalOfferPrice = offerPrice;
+
+    if (originalPriceText.isEmpty &&
+        offerPriceText.isNotEmpty) {
+      finalOriginalPrice = finalOfferPrice;
+    }
+
+    if (offerPriceText.isEmpty &&
+        originalPriceText.isNotEmpty) {
+      finalOfferPrice = finalOriginalPrice;
+    }
+
+    final price = finalOfferPrice;
+
+    // ------------------------------------------------------------
+    // STOCK VALIDATION
+    // ------------------------------------------------------------
 
     final stockQuantity =
         int.tryParse(stockText);
 
-    if (price == null ||
-        rating == null ||
-        originalPrice == null ||
-        offerPrice == null ||
-        stockQuantity == null) {
+    if (stockQuantity == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Invalid numeric values",
+            "Please enter a valid stock quantity",
           ),
         ),
       );
@@ -439,7 +555,26 @@ class _AddProductScreenState
       return;
     }
 
-    if (offerPrice > originalPrice) {
+    // ------------------------------------------------------------
+    // PRICE VALIDATION
+    // ------------------------------------------------------------
+
+    if (finalOriginalPrice < 0 ||
+        finalOfferPrice < 0 ||
+        stockQuantity < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Please enter valid price and stock values",
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    if (finalOfferPrice > finalOriginalPrice &&
+        finalOriginalPrice > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -478,17 +613,29 @@ class _AddProductScreenState
 
       await _productRepository.updateProduct(
         id: widget.product!.id,
+
         name: name,
+
         image: imageUrl,
-        // Actual selling price = offer price.
+
+        // Actual selling price.
         price: price,
+
         rating: rating,
+
         categoryId: selectedCategoryId!,
-        originalPrice: originalPrice,
-        offerPrice: offerPrice,
+
+        originalPrice: finalOriginalPrice,
+
+        offerPrice: finalOfferPrice,
+
         description: description,
+
         stockQuantity: stockQuantity,
+
+        // Optional.
         availableSizes: sizes,
+
         availableColors: colors,
       );
 
@@ -542,11 +689,14 @@ class _AddProductScreenState
           ),
         ),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
+
         child: Column(
           crossAxisAlignment:
               CrossAxisAlignment.start,
+
           children: [
             // ======================================================
             // PRODUCT NAME
@@ -591,7 +741,8 @@ class _AddProductScreenState
                 decimal: true,
               ),
               decoration: const InputDecoration(
-                hintText: "Enter original price",
+                hintText:
+                    "Enter original price (optional)",
                 border: OutlineInputBorder(),
               ),
             ),
@@ -618,7 +769,8 @@ class _AddProductScreenState
                 decimal: true,
               ),
               decoration: const InputDecoration(
-                hintText: "Enter offer price",
+                hintText:
+                    "Enter offer price (optional)",
                 border: OutlineInputBorder(),
               ),
             ),
@@ -645,7 +797,8 @@ class _AddProductScreenState
                 decimal: true,
               ),
               decoration: const InputDecoration(
-                hintText: "Enter rating",
+                hintText:
+                    "Enter rating (optional)",
                 border: OutlineInputBorder(),
               ),
             ),
@@ -667,9 +820,11 @@ class _AddProductScreenState
 
             TextField(
               controller: stockController,
-              keyboardType: TextInputType.number,
+              keyboardType:
+                  TextInputType.number,
               decoration: const InputDecoration(
-                hintText: "Enter available stock",
+                hintText:
+                    "Enter available stock",
                 border: OutlineInputBorder(),
               ),
             ),
@@ -718,7 +873,7 @@ class _AddProductScreenState
               controller: sizesController,
               decoration: const InputDecoration(
                 hintText:
-                    "Example: 7, 8, 9, 10, 11",
+                    "Example: 7, 8, 9, 10, 11 (optional)",
                 border: OutlineInputBorder(),
               ),
             ),
@@ -765,22 +920,30 @@ class _AddProductScreenState
             categoriesAsync.when(
               loading: () {
                 return const Center(
-                  child: CircularProgressIndicator(),
+                  child:
+                      CircularProgressIndicator(),
                 );
               },
+
               error: (error, stack) {
                 return Text(
                   "Failed to load categories: $error",
                 );
               },
+
               data: (categories) {
                 return DropdownButtonFormField<int>(
-                  initialValue: selectedCategoryId,
+                  initialValue:
+                      selectedCategoryId,
+
                   decoration:
                       const InputDecoration(
-                    hintText: "Select category",
-                    border: OutlineInputBorder(),
+                    hintText:
+                        "Select category",
+                    border:
+                        OutlineInputBorder(),
                   ),
+
                   items: categories
                       .map((category) {
                     return DropdownMenuItem<int>(
@@ -789,6 +952,7 @@ class _AddProductScreenState
                           Text(category.name),
                     );
                   }).toList(),
+
                   onChanged: (value) {
                     setState(() {
                       selectedCategoryId =
@@ -817,20 +981,28 @@ class _AddProductScreenState
             GestureDetector(
               onTap:
                   isLoading ? null : _pickImages,
+
               child: Container(
                 width: double.infinity,
                 height: 130,
+
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color:
+                      Colors.grey.shade100,
+
                   borderRadius:
                       BorderRadius.circular(16),
+
                   border: Border.all(
-                    color: Colors.grey.shade300,
+                    color:
+                        Colors.grey.shade300,
                   ),
                 ),
+
                 child: const Column(
                   mainAxisAlignment:
                       MainAxisAlignment.center,
+
                   children: [
                     Icon(
                       Icons
@@ -838,14 +1010,18 @@ class _AddProductScreenState
                       size: 45,
                       color: Colors.grey,
                     ),
+
                     SizedBox(height: 8),
+
                     Text(
                       "Tap to select images",
                       style: TextStyle(
                         color: Colors.grey,
                       ),
                     ),
+
                     SizedBox(height: 4),
+
                     Text(
                       "You can select multiple images",
                       style: TextStyle(
@@ -858,117 +1034,170 @@ class _AddProductScreenState
               ),
             ),
 
-  // ======================================================
-// EXISTING IMAGES
-// ======================================================
+            // ======================================================
+            // EXISTING IMAGES
+            // ======================================================
 
-if (existingImageUrls.isNotEmpty) ...[
-  const SizedBox(height: 15),
+            if (existingImageUrls.isNotEmpty) ...[
+              const SizedBox(height: 15),
 
-  const Text(
-    "Existing Images",
-    style: TextStyle(
-      fontWeight: FontWeight.w600,
-    ),
-  ),
-
-  const SizedBox(height: 10),
-
-  GridView.builder(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    itemCount: existingImageUrls.length,
-    gridDelegate:
-        const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 3,
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      childAspectRatio: 1,
-    ),
-    itemBuilder: (context, index) {
-      return Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              existingImageUrls[index],
-              width: double.infinity,
-              height: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: Colors.grey.shade300,
-                  child: const Icon(
-                    Icons.image_not_supported,
-                  ),
-                );
-              },
-            ),
-          ),
-
-          Positioned(
-            top: 5,
-            right: 5,
-            child: GestureDetector(
-              onTap: () async {
-                final imageUrl =
-                    existingImageUrls[index];
-
-                try {
-                  await _productRepository
-                      .deleteProductImage(
-                    productId: widget.product!.id,
-                    imageUrl: imageUrl,
-                  );
-
-                  if (!mounted) return;
-
-                  setState(() {
-                    existingImageUrls.removeAt(index);
-                  });
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Image deleted"),
-                    ),
-                  );
-                } catch (e) {
-                  if (!mounted) return;
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        "Failed to delete image: $e",
-                      ),
-                    ),
-                  );
-                }
-              },
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.black87,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: 18,
+              const Text(
+                "Existing Images",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          ),
-        ],
-      );
-    },
-  ),
-],
+
+              const SizedBox(height: 10),
+
+              GridView.builder(
+                shrinkWrap: true,
+                physics:
+                    const NeverScrollableScrollPhysics(),
+
+                itemCount:
+                    existingImageUrls.length,
+
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 1,
+                ),
+
+                itemBuilder:
+                    (context, index) {
+                  return Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius:
+                            BorderRadius.circular(
+                                12),
+
+                        child: Image.network(
+                          existingImageUrls[
+                              index],
+
+                          width:
+                              double.infinity,
+
+                          height:
+                              double.infinity,
+
+                          fit: BoxFit.cover,
+
+                          errorBuilder:
+                              (context,
+                                  error,
+                                  stackTrace) {
+                            return Container(
+                              color: Colors
+                                  .grey.shade300,
+
+                              child:
+                                  const Icon(
+                                Icons
+                                    .image_not_supported,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      Positioned(
+                        top: 5,
+                        right: 5,
+
+                        child:
+                            GestureDetector(
+                          onTap: () async {
+                            final imageUrl =
+                                existingImageUrls[
+                                    index];
+
+                            try {
+                              await _productRepository
+                                  .deleteProductImage(
+                                productId:
+                                    widget.product!
+                                        .id,
+                                imageUrl:
+                                    imageUrl,
+                              );
+
+                              if (!mounted) {
+                                return;
+                              }
+
+                              setState(() {
+                                existingImageUrls
+                                    .removeAt(
+                                        index);
+                              });
+
+                              ScaffoldMessenger
+                                      .of(
+                                          context)
+                                  .showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      "Image deleted"),
+                                ),
+                              );
+                            } catch (e) {
+                              if (!mounted) {
+                                return;
+                              }
+
+                              ScaffoldMessenger
+                                      .of(
+                                          context)
+                                  .showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Failed to delete image: $e",
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+
+                          child: Container(
+                            padding:
+                                const EdgeInsets
+                                    .all(4),
+
+                            decoration:
+                                const BoxDecoration(
+                              color:
+                                  Colors.black87,
+                              shape:
+                                  BoxShape.circle,
+                            ),
+
+                            child:
+                                const Icon(
+                              Icons.close,
+                              color:
+                                  Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
 
             // ======================================================
             // NEW IMAGE PREVIEWS
             // ======================================================
 
-            if (selectedImageBytes.isNotEmpty) ...[
+            if (selectedImageBytes
+                .isNotEmpty) ...[
               const SizedBox(height: 20),
 
               const Text(
@@ -984,8 +1213,10 @@ if (existingImageUrls.isNotEmpty) ...[
                 shrinkWrap: true,
                 physics:
                     const NeverScrollableScrollPhysics(),
+
                 itemCount:
                     selectedImageBytes.length,
+
                 gridDelegate:
                     const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
@@ -993,19 +1224,26 @@ if (existingImageUrls.isNotEmpty) ...[
                   mainAxisSpacing: 10,
                   childAspectRatio: 1,
                 ),
+
                 itemBuilder:
                     (context, index) {
                   return Stack(
                     children: [
                       ClipRRect(
                         borderRadius:
-                            BorderRadius.circular(12),
+                            BorderRadius.circular(
+                                12),
+
                         child: Image.memory(
-                          selectedImageBytes[index],
+                          selectedImageBytes[
+                              index],
+
                           width:
                               double.infinity,
+
                           height:
                               double.infinity,
+
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -1013,22 +1251,31 @@ if (existingImageUrls.isNotEmpty) ...[
                       Positioned(
                         top: 5,
                         right: 5,
+
                         child:
                             GestureDetector(
                           onTap: () =>
-                              _removeImage(index),
+                              _removeImage(
+                                  index),
+
                           child: Container(
                             padding:
-                                const EdgeInsets.all(4),
+                                const EdgeInsets
+                                    .all(4),
+
                             decoration:
                                 const BoxDecoration(
-                              color: Colors.black87,
-                              shape: BoxShape.circle,
+                              color:
+                                  Colors.black87,
+                              shape:
+                                  BoxShape.circle,
                             ),
+
                             child:
                                 const Icon(
                               Icons.close,
-                              color: Colors.white,
+                              color:
+                                  Colors.white,
                               size: 18,
                             ),
                           ),
@@ -1039,25 +1286,38 @@ if (existingImageUrls.isNotEmpty) ...[
                         Positioned(
                           left: 6,
                           bottom: 6,
+
                           child: Container(
                             padding:
-                                const EdgeInsets.symmetric(
+                                const EdgeInsets
+                                    .symmetric(
                               horizontal: 7,
                               vertical: 4,
                             ),
+
                             decoration:
                                 BoxDecoration(
-                              color: Colors.black87,
+                              color:
+                                  Colors.black87,
+
                               borderRadius:
-                                  BorderRadius.circular(6),
+                                  BorderRadius
+                                      .circular(
+                                          6),
                             ),
-                            child: const Text(
+
+                            child:
+                                const Text(
                               "Main",
-                              style: TextStyle(
-                                color: Colors.white,
+
+                              style:
+                                  TextStyle(
+                                color:
+                                    Colors.white,
                                 fontSize: 11,
                                 fontWeight:
-                                    FontWeight.bold,
+                                    FontWeight
+                                        .bold,
                               ),
                             ),
                           ),
@@ -1077,36 +1337,47 @@ if (existingImageUrls.isNotEmpty) ...[
             SizedBox(
               width: double.infinity,
               height: 55,
+
               child: ElevatedButton(
                 onPressed: isLoading
                     ? null
                     : widget.product == null
                         ? _addProduct
                         : _updateProduct,
+
                 style:
                     ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
+                  backgroundColor:
+                      Colors.black,
+
+                  foregroundColor:
+                      Colors.white,
+
                   shape:
                       RoundedRectangleBorder(
                     borderRadius:
-                        BorderRadius.circular(14),
+                        BorderRadius.circular(
+                            14),
                   ),
                 ),
+
                 child: isLoading
                     ? const SizedBox(
                         height: 24,
                         width: 24,
+
                         child:
                             CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color:
+                              Colors.white,
                         ),
                       )
                     : Text(
                         widget.product == null
                             ? "Add Product"
                             : "Update Product",
+
                         style:
                             const TextStyle(
                           fontSize: 16,

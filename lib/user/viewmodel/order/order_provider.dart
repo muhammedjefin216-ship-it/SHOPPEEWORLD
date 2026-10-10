@@ -11,3 +11,10 @@ final myOrdersProvider =
 
   return repository.getMyOrders();
 });
+
+final hiddenOrdersProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final repository = ref.read(orderRepositoryProvider);
+
+  return repository.getHiddenOrders();
+});

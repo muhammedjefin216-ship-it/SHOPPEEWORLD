@@ -209,16 +209,13 @@ Future<void> removeItem(
   }
 
   // Delivery charge
-  double get deliveryCharge {
-    if (state.isEmpty) {
-      return 0;
-    }
+  // Delivery charge
+double get deliveryCharge {
+  return 0;
+}
 
-    return 100;
-  }
-
-  // Final total
-  double get total {
-    return subtotal + deliveryCharge;
-  }
+// Final total
+double get total {
+  return subtotal;
+}
 }
