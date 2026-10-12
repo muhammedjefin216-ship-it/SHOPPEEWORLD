@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shoppee_world/user/core/theme/app_tokens.dart';
 import 'package:shoppee_world/user/viewmodel/product/product_provider.dart';
@@ -141,8 +142,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         titleSpacing: AppTokens.gutter,
         title: Text(
           'Search',
-          style: AppTokens.headline.copyWith(
-            fontSize: 22,
+          style: GoogleFonts.poppins(
+            color: const Color.fromARGB(255, 230, 229, 225),
+            fontWeight: FontWeight.bold
+            
           ),
         ),
       ),
@@ -155,7 +158,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // SEARCH FIELD
+              
 
               Container(
                 decoration: BoxDecoration(
@@ -289,7 +292,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // SECTION HEADER
+       
 
         Row(
           children: [

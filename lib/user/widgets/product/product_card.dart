@@ -258,9 +258,10 @@ class _ProductCardState extends ConsumerState<ProductCard>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // PRODUCT IMAGE - original fit preserved
+              // PRODUCT IMAGE
+              // Takes whatever height is left after the details block,
+              // so the card can never overflow.
               Expanded(
-                flex: 10,
                 child: SizedBox(
                   width: double.infinity,
                   child: AppNetworkImage(
@@ -270,76 +271,75 @@ class _ProductCardState extends ConsumerState<ProductCard>
                 ),
               ),
 
-              // PRODUCT DETAILS
-              Expanded(
-                flex: 6,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // PRODUCT NAME
-                      Text(
-                        product.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTokens.bodyStrong.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          height: 1.25,
-                          letterSpacing: -0.25,
-                          color: AppTokens.textPrimary,
-                        ),
+              // PRODUCT DETAILS (sized by its own content)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppTokens.s12,
+                  AppTokens.s12,
+                  AppTokens.s12,
+                  AppTokens.s12,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // PRODUCT NAME
+                    Text(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTokens.bodyStrong.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
+                        letterSpacing: -0.1,
                       ),
+                    ),
 
-                      const SizedBox(height: 6),
+                    const SizedBox(height: 4),
 
-                      
-                      Text(
-                        product.category,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTokens.caption.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppTokens.textSecondary,
-                        ),
-                      ),
-                      
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '₹${product.price.toStringAsFixed(0)}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTokens.bodyStrong.copyWith(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: AppTokens.textPrimary,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.star_rounded,
-                            color: AppTokens.accent,
-                            size: 17,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            product.rating.toString(),
+                    // CATEGORY
+                    Text(
+                      product.category,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTokens.caption,
+                    ),
+
+                    const SizedBox(height: AppTokens.s8),
+
+                    // PRICE + RATING
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '₹${product.price.toStringAsFixed(0)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: AppTokens.bodyStrong.copyWith(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTokens.textPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.2,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                        const SizedBox(width: AppTokens.s8),
+                        const Icon(
+                          Icons.star_rounded,
+                          color: AppTokens.accent,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          product.rating.toStringAsFixed(1),
+                          style: AppTokens.bodyStrong.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],

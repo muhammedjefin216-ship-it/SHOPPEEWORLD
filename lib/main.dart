@@ -1,13 +1,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:shoppee_world/user/main_screen.dart';
 import 'package:shoppee_world/user/views/auth/login/login_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await Hive.initFlutter();
   await Supabase.initialize(
     url: 'https://vdxqxeiugvylbocmmoly.supabase.co',
     anonKey: 'sb_publishable_gQSipJMJr-5F8NhcovSZvQ_sIt_JnSf',

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import 'package:shoppee_world/user/core/theme/app_tokens.dart';
 import 'package:shoppee_world/user/viewmodel/catagory/category_provider.dart';
 import 'package:shoppee_world/user/viewmodel/catagory/selected_category_provider.dart';
 import 'package:shoppee_world/user/views/catagory/category_products_screen.dart';
@@ -14,8 +14,10 @@ class CategoriesScreen extends ConsumerStatefulWidget {
 }
 
 class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
-  static const Color backgroundColor = Color(0xff080C0D);
-  static const Color cardColor = Color(0xff191D1E);
+  // Neutral tile behind category images (many product images have
+  // light backgrounds).
+  static const Color _imageTileColor = Color(0xffECE8E1);
+  static const Color _imageTileIconColor = Color(0xff6B7377);
 
   int? _selectedChipId;
   bool _isSearching = false;
@@ -107,17 +109,21 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: AppTokens.background,
       appBar: AppBar(
-        backgroundColor: backgroundColor,
+        backgroundColor: AppTokens.background,
         surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         elevation: 0,
+        titleSpacing: 0,
+        centerTitle: false,
 
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
-            size: 18,
+            Icons.arrow_back_rounded,
+            color: AppTokens.textPrimary,
+            size: 22,
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -127,10 +133,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         title: _isSearching
             ? TextField(
                 autofocus: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
+                cursorColor: AppTokens.accent,
+                style: AppTokens.bodyStrong,
+                decoration: InputDecoration(
                   hintText: 'Search categories',
-                  hintStyle: TextStyle(color: Colors.white38),
+                  hintStyle: AppTokens.body.copyWith(
+                    color: AppTokens.textTertiary,
+                  ),
                   border: InputBorder.none,
                 ),
                 onChanged: (value) {
@@ -141,18 +150,15 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               )
             : Text(
                 'Categories',
-                style: GoogleFonts.outfit(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: AppTokens.pageTitle,
               ),
 
         actions: [
           IconButton(
+            tooltip: _isSearching ? 'Close search' : 'Search',
             icon: Icon(
-              _isSearching ? Icons.close : Icons.search_rounded,
-              color: Colors.white,
+              _isSearching ? Icons.close_rounded : Icons.search_rounded,
+              color: AppTokens.textPrimary,
               size: 22,
             ),
             onPressed: () {
@@ -166,33 +172,52 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             },
           ),
 
-          const SizedBox(width: 6),
+          const SizedBox(width: 4),
         ],
+
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: AppTokens.border,
+          ),
+        ),
       ),
 
       body: categoriesAsync.when(
         loading: () {
           return const Center(
-            child: CircularProgressIndicator(color: Colors.white),
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: AppTokens.textSecondary,
+                strokeWidth: 2,
+              ),
+            ),
           );
         },
 
         error: (error, _) {
           return Center(
-            child: Text(
-              'Failed to load categories\n$error',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white),
+            child: Padding(
+              padding: const EdgeInsets.all(AppTokens.s24),
+              child: Text(
+                'Failed to load categories\n$error',
+                textAlign: TextAlign.center,
+                style: AppTokens.caption,
+              ),
             ),
           );
         },
 
         data: (categories) {
           if (categories.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'No categories available',
-                style: TextStyle(color: Colors.white54),
+                style: AppTokens.caption,
               ),
             );
           }
@@ -210,12 +235,17 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 
           return Column(
             children: [
+              const SizedBox(height: AppTokens.s8),
+
               // CATEGORY CHIPS
               SizedBox(
                 height: 48,
                 child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTokens.gutter,
+                  ),
                   scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
                   itemCount: categories.length + 1,
                   itemBuilder: (context, index) {
                     if (index == 0) {
@@ -249,25 +279,39 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                 ),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: AppTokens.s8),
 
               // CATEGORY LIST
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
-                  itemCount: filteredCategories.length,
-                  itemBuilder: (context, index) {
-                    final category = filteredCategories[index];
+                child: filteredCategories.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No matching categories',
+                          style: AppTokens.caption,
+                        ),
+                      )
+                    : ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(
+                          AppTokens.gutter,
+                          AppTokens.s4,
+                          AppTokens.gutter,
+                          AppTokens.s24,
+                        ),
+                        itemCount: filteredCategories.length,
+                        itemBuilder: (context, index) {
+                          final category = filteredCategories[index];
 
-                    final isSelected = _selectedChipId == category.id;
+                          final isSelected =
+                              _selectedChipId == category.id;
 
-                    return _buildCategoryCard(
-                      context: context,
-                      category: category,
-                      isSelected: isSelected,
-                    );
-                  },
-                ),
+                          return _buildCategoryCard(
+                            context: context,
+                            category: category,
+                            isSelected: isSelected,
+                          );
+                        },
+                      ),
               ),
             ],
           );
@@ -283,21 +327,28 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(
+          right: AppTokens.s8,
+          top: 6,
+          bottom: 6,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : const Color(0xff191D1E),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(.05)),
+          color: isSelected ? AppTokens.fill : AppTokens.background,
+          borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+          border: Border.all(
+            color: isSelected ? AppTokens.fill : AppTokens.border,
+          ),
         ),
         alignment: Alignment.center,
         child: Text(
           title,
-          style: TextStyle(
-            color: isSelected ? Colors.black : Colors.white70,
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          style: AppTokens.bodyStrong.copyWith(
+            fontSize: 13,
+            color: isSelected ? AppTokens.onFill : AppTokens.textSecondary,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
       ),
@@ -324,56 +375,50 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         );
       },
       child: Container(
-        height: 88,
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        height: 84,
+        margin: const EdgeInsets.only(bottom: AppTokens.s12),
+        padding: const EdgeInsets.all(AppTokens.s8),
         decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(14),
+          color: AppTokens.surface,
+          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
           border: Border.all(
-            color: isSelected
-                ? Colors.white.withOpacity(.25)
-                : Colors.white.withOpacity(.05),
+            color: isSelected ? AppTokens.accent : AppTokens.border,
           ),
         ),
         child: Row(
           children: [
-            // CATEGORY ICON
-            // CATEGORY IMAGE
             // CATEGORY IMAGE
             Container(
               height: 68,
               width: 68,
               decoration: BoxDecoration(
-                color: const Color(0xffE7E7E7),
-                borderRadius: BorderRadius.circular(12),
+                color: _imageTileColor,
+                borderRadius: BorderRadius.circular(AppTokens.radiusMd),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppTokens.radiusMd),
                 child:
                     category.imageUrl != null && category.imageUrl!.isNotEmpty
                     ? Image.network(
                         category.imageUrl!,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          print("CATEGORY IMAGE ERROR: $error");
-
                           return const Icon(
                             Icons.category_outlined,
-                            color: Colors.black87,
+                            color: _imageTileIconColor,
                             size: 28,
                           );
                         },
                       )
                     : const Icon(
                         Icons.category_outlined,
-                        color: Colors.black87,
+                        color: _imageTileIconColor,
                         size: 28,
                       ),
               ),
             ),
 
-            const SizedBox(width: 14),
+            const SizedBox(width: AppTokens.s12),
 
             Expanded(
               child: Column(
@@ -384,20 +429,18 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                     category.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
+                    style: AppTokens.bodyStrong.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
 
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
 
                   Text(
                     _getCategorySubtitle(category.name),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white54, fontSize: 10),
+                    style: AppTokens.caption,
                   ),
                 ],
               ),
@@ -406,9 +449,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             // ARROW
             const Icon(
               Icons.chevron_right_rounded,
-              color: Colors.white54,
+              color: AppTokens.textTertiary,
               size: 22,
             ),
+
+            const SizedBox(width: 4),
           ],
         ),
       ),

@@ -86,6 +86,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shoppee_world/user/core/theme/app_tokens.dart';
 import 'package:shoppee_world/user/viewmodel/wishlist/wishlist_provider.dart';
 import 'package:shoppee_world/user/widgets/product/product_card.dart';
@@ -107,11 +108,12 @@ class WishlistScreen extends ConsumerWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        centerTitle: true,
         title: Text(
           'Wishlist',
-          style: AppTokens.headline.copyWith(
+          style:GoogleFonts.poppins(
             fontSize: 21,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
         ),
         actions: [

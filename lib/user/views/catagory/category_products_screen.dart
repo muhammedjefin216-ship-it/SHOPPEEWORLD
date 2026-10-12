@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import 'package:shoppee_world/user/core/theme/app_tokens.dart';
 import 'package:shoppee_world/user/viewmodel/product/product_provider.dart';
 import 'package:shoppee_world/user/widgets/product/product_card.dart';
 
@@ -15,83 +15,115 @@ class CategoryProductsScreen extends ConsumerWidget {
     required this.categoryName,
   });
 
-  static const Color backgroundColor = Color(0xff080C0D);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productsAsync = ref.watch(productsProvider);
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: AppTokens.background,
       appBar: AppBar(
-        backgroundColor: backgroundColor,
+        backgroundColor: AppTokens.background,
         surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         elevation: 0,
+        titleSpacing: 0,
+        centerTitle: false,
         leading: IconButton(
+          tooltip: 'Back',
           icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
-            size: 18,
+            Icons.arrow_back_rounded,
+            color: AppTokens.textPrimary,
+            size: 22,
           ),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        centerTitle: true,
         title: Text(
           categoryName,
-          style: GoogleFonts.outfit(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppTokens.pageTitle,
+        ),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: AppTokens.border,
           ),
         ),
       ),
       body: productsAsync.when(
         loading: () {
           return const Center(
-            child: CircularProgressIndicator(
-              color: Colors.white,
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: AppTokens.textSecondary,
+                strokeWidth: 2,
+              ),
             ),
           );
         },
         error: (error, _) {
           return Center(
-            child: Text(
-              "Failed to load products\n$error",
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(AppTokens.s24),
+              child: Text(
+                "Failed to load products\n$error",
+                textAlign: TextAlign.center,
+                style: AppTokens.caption,
               ),
             ),
           );
         },
         data: (products) {
-          if (products.isEmpty) {
+          // Only show products that belong to the tapped category.
+          final categoryProducts = products
+              .where((product) => product.categoryId == categoryId)
+              .toList();
+
+          if (categoryProducts.isEmpty) {
             return Center(
-              child: Text(
-                "No products available",
-                style: GoogleFonts.outfit(
-                  color: Colors.white54,
-                  fontSize: 15,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.search_off_rounded,
+                    color: AppTokens.textTertiary,
+                    size: 40,
+                  ),
+                  const SizedBox(height: AppTokens.s16),
+                  Text(
+                    "No products in this category",
+                    style: AppTokens.bodyStrong,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Check back soon",
+                    style: AppTokens.caption,
+                  ),
+                ],
               ),
             );
           }
 
           return GridView.builder(
-            padding: const EdgeInsets.all(18),
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(AppTokens.gutter),
             gridDelegate:
                 const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 16,
+              crossAxisSpacing: AppTokens.s12,
+              mainAxisSpacing: AppTokens.s12,
               childAspectRatio: .68,
             ),
-            itemCount: products.length,
+            itemCount: categoryProducts.length,
             itemBuilder: (context, index) {
               return ProductCard(
-                product: products[index],
+                product: categoryProducts[index],
               );
             },
           );

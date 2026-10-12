@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:shoppee_world/user/core/theme/app_tokens.dart';
 import 'package:shoppee_world/user/viewmodel/order/order_provider.dart';
@@ -215,11 +216,12 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
         ),
         title: Text(
           'My Orders',
-          style: AppTokens.headline.copyWith(
+           style:GoogleFonts.poppins(
             fontSize: 21,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
         actions: [
           if (!_isClearing)
             ordersAsync.maybeWhen(

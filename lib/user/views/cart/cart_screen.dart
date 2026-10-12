@@ -38,13 +38,12 @@ class CartScreen extends ConsumerWidget {
             size: 19,
           ),
         ),
-        centerTitle: true,
         title: Text(
           "My Cart",
-          style: GoogleFonts.outfit(
+          style:GoogleFonts.poppins(
+            fontSize: 21,
             color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.bold,
           ),
         ),
         actions: [

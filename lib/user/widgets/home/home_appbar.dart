@@ -76,7 +76,7 @@ class _HomeAppBarState extends State<HomeAppBar>
 
         const SizedBox(width: AppTokens.s8),
 
-        // Animated App Name
+        
         Expanded(
           child: FadeTransition(
             opacity: _titleFadeAnimation,
